@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <color name="ide_background">#FF2B2B2B</color>
+    <color name="toolbar_background">#FF1E1E1E</color>
+    <color name="panel_background">#FF3C3C3C</color>
+    <color name="header_background">#FF4A4A4A</color>
+    <color name="editor_background">#FF2B2B2B</color>
+    <color name="console_background">#FF1A1A1A</color>
+    <color name="list_background">#FF3C3C3C</color>
+    
+    <color name="header_text">#FFFFFFFF</color>
+    <color name="code_text">#FFE6E6E6</color>
+    <color name="console_text">#FF00FF00</color>
+    <color name="hint_text">#FF888888</color>
+    
+    <color name="divider_color">#FF555555</color>
+    
+    <color name="run_button_color">#FF4CAF50</color>
+    <color name="new_file_button_color">#FF2196F3</color>
+    
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
 </resources>
