@@ -19,3 +19,20 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# BeanShell specific ProGuard rules
+-keep class bsh.** { *; }
+-dontwarn bsh.**
+-keepattributes Signature
+-keepattributes *Annotation*
+
+# Keep reflection-related methods
+-keepclassmembers class * {
+    java.lang.reflect.Method *;
+}
+
+# Preserve classes used by BeanShell for interpretation
+-keep class java.lang.reflect.** { *; }
+-keep class java.util.** { *; }
+-keep class java.io.** { *; }
+-keep class java.math.** { *; }

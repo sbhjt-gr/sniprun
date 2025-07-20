@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/ide_background"
+    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
     <androidx.appcompat.widget.Toolbar
@@ -44,18 +45,16 @@
                 android:layout_height="wrap_content"
                 android:background="@color/header_background"
                 android:padding="8dp"
-                android:text="Project Files"
+                android:text="Project Explorer"
                 android:textColor="@color/header_text"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <ListView
-                android:id="@+id/file_list_view"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/file_tree_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/list_background"
-                android:divider="@color/divider_color"
-                android:dividerHeight="1dp"
                 android:padding="4dp" />
 
         </LinearLayout>
@@ -127,15 +126,33 @@
                 android:background="@color/console_background"
                 android:orientation="vertical">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/header_background"
-                    android:padding="8dp"
-                    android:text="Output Console"
-                    android:textColor="@color/header_text"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Output Console"
+                        android:textColor="@color/header_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/copy_output_button"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@android:drawable/ic_menu_share"
+                        android:contentDescription="Copy output to clipboard"
+                        android:padding="4dp"
+                        android:scaleType="centerInside" />
+
+                </LinearLayout>
 
                 <ScrollView
                     android:layout_width="match_parent"

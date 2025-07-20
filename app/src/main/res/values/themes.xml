@@ -1,17 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Theme.SnipRun" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
         <item name="colorPrimary">@color/toolbar_background</item>
         <item name="colorPrimaryVariant">@color/ide_background</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/run_button_color</item>
         <item name="colorSecondaryVariant">@color/new_file_button_color</item>
         <item name="colorOnSecondary">@color/white</item>
-        <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/toolbar_background</item>
-        <!-- IDE specific customizations -->
         <item name="android:windowBackground">@color/ide_background</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

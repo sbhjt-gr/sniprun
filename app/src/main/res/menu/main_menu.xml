@@ -9,6 +9,12 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_templates"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Code Templates"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_clear_console"
         android:icon="@android:drawable/ic_menu_delete"
         android:title="Clear Console"

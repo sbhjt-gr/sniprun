@@ -1,26 +1,22 @@
 package com.gorai.sniprun;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,14 +24,12 @@ public class MainActivity extends AppCompatActivity {
     
     private EditText codeEditor;
     private TextView outputConsole;
-    private ListView fileListView;
     private FloatingActionButton runButton;
     private FloatingActionButton newFileButton;
+    private ImageButton copyOutputButton;
     
-    private File currentProjectDir;
-    private List<String> fileList;
-    private ArrayAdapter<String> fileAdapter;
     private ExecutorService executorService;
+    private JavaExecutor javaExecutor;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +38,10 @@ public class MainActivity extends AppCompatActivity {
         
         initializeViews();
         setupToolbar();
-        setupFileSystem();
         setupListeners();
         
         executorService = Executors.newSingleThreadExecutor();
+        javaExecutor = new JavaExecutor(this);
         
         loadSampleCode();
     }
@@ -55,141 +49,26 @@ public class MainActivity extends AppCompatActivity {
     private void initializeViews() {
         codeEditor = findViewById(R.id.code_editor);
         outputConsole = findViewById(R.id.output_console);
-        fileListView = findViewById(R.id.file_list_view);
         runButton = findViewById(R.id.run_button);
         newFileButton = findViewById(R.id.new_file_button);
+        copyOutputButton = findViewById(R.id.copy_output_button);
     }
     
     private void setupToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("SnipRun IDE");
-    }
-    
-    private void setupFileSystem() {
-        currentProjectDir = new File(getFilesDir(), "projects");
-        if (!currentProjectDir.exists()) {
-            currentProjectDir.mkdirs();
-        }
-        
-        fileList = new ArrayList<>();
-        fileAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, fileList);
-        fileListView.setAdapter(fileAdapter);
-        
-        refreshFileList();
+        getSupportActionBar().setTitle("SnipRun IDE - Android Java Interpreter");
     }
     
     private void setupListeners() {
-        runButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                runCode();
-            }
+        runButton.setOnClickListener(v -> runCode());
+        
+        newFileButton.setOnClickListener(v -> {
+            codeEditor.setText("");
+            outputConsole.setText("Ready for new code...");
         });
         
-        newFileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showNewFileDialog();
-            }
-        });
-        
-        fileListView.setOnItemClickListener((parent, view, position, id) -> {
-            String fileName = fileList.get(position);
-            loadFile(fileName);
-        });
-    }
-    
-    private void loadSampleCode() {
-        String sampleCode = "public class HelloWorld {\n" +
-                "    public static void main(String[] args) {\n" +
-                "        System.out.println(\"Hello, SnipRun IDE!\");\n" +
-                "        \n" +
-                "        // Try some basic Java operations\n" +
-                "        int sum = 0;\n" +
-                "        for (int i = 1; i <= 10; i++) {\n" +
-                "            sum += i;\n" +
-                "        }\n" +
-                "        System.out.println(\"Sum of 1-10: \" + sum);\n" +
-                "    }\n" +
-                "}";
-        codeEditor.setText(sampleCode);
-    }
-    
-    private void refreshFileList() {
-        fileList.clear();
-        File[] files = currentProjectDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile() && file.getName().endsWith(".java")) {
-                    fileList.add(file.getName());
-                }
-            }
-        }
-        fileAdapter.notifyDataSetChanged();
-    }
-    
-    private void loadFile(String fileName) {
-        File file = new File(currentProjectDir, fileName);
-        try {
-            StringBuilder content = new StringBuilder();
-            java.util.Scanner scanner = new java.util.Scanner(file);
-            while (scanner.hasNextLine()) {
-                content.append(scanner.nextLine()).append("\n");
-            }
-            scanner.close();
-            codeEditor.setText(content.toString());
-            Toast.makeText(this, "Loaded: " + fileName, Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            showError("Error loading file: " + e.getMessage());
-        }
-    }
-    
-    private void showNewFileDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("New Java File");
-        
-        final EditText input = new EditText(this);
-        input.setHint("Enter filename (without .java extension)");
-        builder.setView(input);
-        
-        builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String fileName = input.getText().toString().trim();
-                if (!fileName.isEmpty()) {
-                    createNewFile(fileName);
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
-    }
-    
-    private void createNewFile(String fileName) {
-        if (!fileName.endsWith(".java")) {
-            fileName += ".java";
-        }
-        
-        String className = fileName.replace(".java", "");
-        String template = "public class " + className + " {\n" +
-                "    public static void main(String[] args) {\n" +
-                "        System.out.println(\"Hello from " + className + "!\");\n" +
-                "    }\n" +
-                "}";
-        
-        File file = new File(currentProjectDir, fileName);
-        try {
-            FileWriter writer = new FileWriter(file);
-            writer.write(template);
-            writer.close();
-            
-            codeEditor.setText(template);
-            refreshFileList();
-            Toast.makeText(this, "Created: " + fileName, Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            showError("Error creating file: " + e.getMessage());
-        }
+        copyOutputButton.setOnClickListener(v -> copyOutputToClipboard());
     }
     
     private void runCode() {
@@ -199,75 +78,66 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         
-        outputConsole.setText("Running code...\n");
+        outputConsole.setText("Parsing and executing Java code...\nUsing Android-compatible Java interpreter.\n");
         runButton.setEnabled(false);
         
         executorService.execute(() -> {
             try {
-                String output = executeJavaCode(code);
+                JavaExecutor.ExecutionResult result = javaExecutor.executeJavaCode(code);
                 
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    outputConsole.setText(output);
+                    StringBuilder output = new StringBuilder();
+                    
+                    if (result.isSuccess()) {
+                        
+                        output.append(result.getOutput());
+                    } else {
+                        output.append("Error: \n").append(result.getErrorMessage());
+                    }
+                    
+                    outputConsole.setText(output.toString());
                     runButton.setEnabled(true);
                 });
+                
             } catch (Exception e) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    outputConsole.setText("Error: " + e.getMessage());
+                    outputConsole.setText("Unexpected error: " + e.getMessage());
                     runButton.setEnabled(true);
                 });
             }
         });
     }
     
-    private String executeJavaCode(String code) {
-        try {
-            File tempFile = new File(getCacheDir(), "TempClass.java");
-            FileWriter writer = new FileWriter(tempFile);
-            writer.write(code);
-            writer.close();
-            
-            StringBuilder output = new StringBuilder();
-            output.append("Code execution simulation:\n");
-            output.append("========================\n\n");
-            
-            if (code.contains("System.out.println")) {
-                String[] lines = code.split("\n");
-                for (String line : lines) {
-                    if (line.trim().startsWith("System.out.println")) {
-                        String content = extractPrintContent(line);
-                        if (content != null) {
-                            output.append(content).append("\n");
-                        }
-                    }
-                }
-            } else {
-                output.append("Code compiled successfully!\n");
-                output.append("(Note: This is a simulation. For full execution, integrate with a Java compiler)\n");
-            }
-            
-            output.append("\nExecution completed.");
-            return output.toString();
-            
-        } catch (Exception e) {
-            return "Error during execution: " + e.getMessage();
-        }
-    }
-    
-    private String extractPrintContent(String line) {
-        try {
-            int start = line.indexOf("\"");
-            int end = line.lastIndexOf("\"");
-            if (start != -1 && end != -1 && start < end) {
-                return line.substring(start + 1, end);
-            }
-            
-            if (line.contains("System.out.println(") && line.contains("+")) {
-                return "Result of expression";
-            }
-        } catch (Exception e) {
-            return "Output";
-        }
-        return null;
+    private void loadSampleCode() {
+        String sampleCode = "import java.util.*;\n\n" +
+                "public class HelloWorld {\n" +
+                "    public static void main(String[] args) {\n" +
+                "        System.out.println(\"Hello, SnipRun IDE!\");\n" +
+                "        \n" +
+                "        int sum = 0;\n" +
+                "        for (int i = 1; i <= 10; i++) {\n" +
+                "            sum += i;\n" +
+                "        }\n" +
+                "        System.out.println(\"Sum of 1-10: \" + sum);\n" +
+                "        \n" +
+                "        List<String> languages = new ArrayList<>();\n" +
+                "        languages.add(\"Java\");\n" +
+                "        languages.add(\"Kotlin\");\n" +
+                "        languages.add(\"Python\");\n" +
+                "        \n" +
+                "        System.out.println(\"Programming languages:\");\n" +
+                "        for (String lang : languages) {\n" +
+                "            System.out.println(\"- \" + lang);\n" +
+                "        }\n" +
+                "        \n" +
+                "        String message = \"Java on Android!\";\n" +
+                "        System.out.println(\"Uppercase: \" + message.toUpperCase());\n" +
+                "        System.out.println(\"Length: \" + message.length());\n" +
+                "        \n" +
+                "        System.out.println(\"Current time: \" + new java.util.Date());\n" +
+                "    }\n" +
+                "}";
+        codeEditor.setText(sampleCode);
     }
     
     private void showError(String message) {
@@ -285,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         
-        if (id == R.id.action_save) {
-            saveCurrentFile();
+        if (id == R.id.action_templates) {
+            showCodeTemplatesDialog();
             return true;
         } else if (id == R.id.action_clear_console) {
             outputConsole.setText("");
@@ -299,48 +169,43 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     
-    private void saveCurrentFile() {
+    private void showCodeTemplatesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Save File");
+        builder.setTitle("Choose Code Template");
         
-        final EditText input = new EditText(this);
-        input.setHint("Enter filename (without .java extension)");
-        builder.setView(input);
+        String[] templateNames = CodeTemplates.getTemplateNames();
         
-        builder.setPositiveButton("Save", (dialog, which) -> {
-            String fileName = input.getText().toString().trim();
-            if (!fileName.isEmpty()) {
-                saveFile(fileName);
-            }
+        builder.setItems(templateNames, (dialog, which) -> {
+            String selectedTemplate = CodeTemplates.getTemplate(which);
+            codeEditor.setText(selectedTemplate);
+            Toast.makeText(MainActivity.this, "Template loaded: " + templateNames[which], Toast.LENGTH_SHORT).show();
         });
+        
         builder.setNegativeButton("Cancel", null);
         builder.show();
-    }
-    
-    private void saveFile(String fileName) {
-        if (!fileName.endsWith(".java")) {
-            fileName += ".java";
-        }
-        
-        File file = new File(currentProjectDir, fileName);
-        try {
-            FileWriter writer = new FileWriter(file);
-            writer.write(codeEditor.getText().toString());
-            writer.close();
-            
-            refreshFileList();
-            Toast.makeText(this, "Saved: " + fileName, Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            showError("Error saving file: " + e.getMessage());
-        }
     }
     
     private void showAboutDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("About SnipRun IDE");
-        builder.setMessage("SnipRun IDE v1.0\n\nA simple Java IDE for Android\n\nFeatures:\n• Code editing\n• File management\n• Code execution simulation\n• Syntax-aware interface");
+        builder.setMessage("SnipRun IDE v3.0\n\nAndroid Java Interpreter\n\nFeatures:\n• Android-compatible Java interpretation\n• Real-time code parsing and execution\n• JavaParser-based syntax validation\n• Clean and simple interface\n• Educational Java environment\n• Copy output to clipboard\n\nPowered by JavaParser 3.25.5\nInspired by Cosmic IDE architecture");
         builder.setPositiveButton("OK", null);
         builder.show();
+    }
+    
+    private void copyOutputToClipboard() {
+        String output = outputConsole.getText().toString();
+        
+        if (output.trim().isEmpty()) {
+            Toast.makeText(this, "No output to copy", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("SnipRun Output", output);
+        clipboard.setPrimaryClip(clip);
+        
+        Toast.makeText(this, "Output copied to clipboard", Toast.LENGTH_SHORT).show();
     }
     
     @Override
@@ -350,4 +215,4 @@ public class MainActivity extends AppCompatActivity {
             executorService.shutdown();
         }
     }
-} 
+}
