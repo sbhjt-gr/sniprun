@@ -37,6 +37,9 @@ dependencies {
     implementation 'androidx.fragment:fragment:1.6.2'
     implementation 'com.google.android.material:material:1.11.0'
     
+    // Lottie for beautiful animations
+    implementation 'com.airbnb.android:lottie:6.6.7'
+    
     implementation 'org.ow2.asm:asm:9.6'
     implementation 'org.ow2.asm:asm-tree:9.6'
     implementation 'org.ow2.asm:asm-util:9.6'

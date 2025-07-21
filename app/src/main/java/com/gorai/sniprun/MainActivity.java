@@ -1,5 +1,7 @@
 package com.gorai.sniprun;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -9,13 +11,16 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.airbnb.lottie.LottieAnimationView;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,7 +31,16 @@ public class MainActivity extends AppCompatActivity {
     private TextView outputConsole;
     private FloatingActionButton runButton;
     private FloatingActionButton newFileButton;
-    private ImageButton copyOutputButton;
+    private MaterialButton copyOutputButton;
+    
+    private LottieAnimationView toolbarLogoAnimation;
+    private LottieAnimationView explorerIcon;
+    private LottieAnimationView editorStatusAnimation;
+    private LottieAnimationView runButtonLoading;
+    private LottieAnimationView runButtonPulse;
+    private LottieAnimationView newFilePulse;
+    private LottieAnimationView resultAnimation;
+    private FrameLayout animationOverlay;
     
     private ExecutorService executorService;
     private JavaExecutor javaExecutor;
@@ -37,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         
         initializeViews();
+        initializeLottieAnimations();
         setupToolbar();
         setupListeners();
         
@@ -44,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         javaExecutor = new JavaExecutor(this);
         
         loadSampleCode();
+        startInitialAnimations();
     }
     
     private void initializeViews() {
@@ -52,60 +68,225 @@ public class MainActivity extends AppCompatActivity {
         runButton = findViewById(R.id.run_button);
         newFileButton = findViewById(R.id.new_file_button);
         copyOutputButton = findViewById(R.id.copy_output_button);
+        animationOverlay = findViewById(R.id.animation_overlay);
+    }
+    
+    private void initializeLottieAnimations() {
+        toolbarLogoAnimation = findViewById(R.id.toolbar_logo_animation);
+        explorerIcon = findViewById(R.id.explorer_icon);
+        editorStatusAnimation = findViewById(R.id.editor_status_animation);
+        runButtonLoading = findViewById(R.id.run_button_loading);
+        runButtonPulse = findViewById(R.id.run_button_pulse);
+        newFilePulse = findViewById(R.id.new_file_pulse);
+        resultAnimation = findViewById(R.id.result_animation);
+    }
+    
+    private void startInitialAnimations() {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (toolbarLogoAnimation != null) {
+                toolbarLogoAnimation.playAnimation();
+            }
+        }, 500);
+        
+        if (explorerIcon != null) {
+            explorerIcon.setSpeed(0.5f);
+            explorerIcon.playAnimation();
+        }
+        
+        if (runButtonPulse != null) {
+            runButtonPulse.setSpeed(0.8f);
+            runButtonPulse.playAnimation();
+        }
+        
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (newFilePulse != null && codeEditor.getText().toString().trim().isEmpty()) {
+                newFilePulse.setSpeed(0.6f);
+                newFilePulse.playAnimation();
+            }
+        }, 2000);
     }
     
     private void setupToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("SnipRun IDE - Android Java Interpreter");
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
     }
     
     private void setupListeners() {
-        runButton.setOnClickListener(v -> runCode());
+        runButton.setOnClickListener(v -> runCodeWithAnimation());
         
         newFileButton.setOnClickListener(v -> {
-            codeEditor.setText("");
-            outputConsole.setText("Ready for new code...");
+            newFileWithAnimation();
         });
         
         copyOutputButton.setOnClickListener(v -> copyOutputToClipboard());
+        
+        animationOverlay.setOnClickListener(v -> hideAnimationOverlay());
+        
+        codeEditor.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && editorStatusAnimation != null) {
+                editorStatusAnimation.setAnimation("typing_animation.json");
+                editorStatusAnimation.setSpeed(1.5f);
+                editorStatusAnimation.playAnimation();
+                
+                if (newFilePulse != null && !codeEditor.getText().toString().trim().isEmpty()) {
+                    newFilePulse.cancelAnimation();
+                }
+            } else if (editorStatusAnimation != null) {
+                editorStatusAnimation.cancelAnimation();
+            }
+        });
     }
     
-    private void runCode() {
+    private void runCodeWithAnimation() {
         String code = codeEditor.getText().toString();
         if (code.trim().isEmpty()) {
             showError("Please enter some Java code to run");
             return;
         }
         
+        showLoadingAnimation();
+        
         outputConsole.setText("Parsing and executing Java code...\nUsing Android-compatible Java interpreter.\n");
         runButton.setEnabled(false);
+        
+        if (editorStatusAnimation != null) {
+            editorStatusAnimation.setAnimation("loading_animation.json");
+            editorStatusAnimation.playAnimation();
+        }
         
         executorService.execute(() -> {
             try {
                 JavaExecutor.ExecutionResult result = javaExecutor.executeJavaCode(code);
                 
                 new Handler(Looper.getMainLooper()).post(() -> {
+                    hideLoadingAnimation();
+                    
                     StringBuilder output = new StringBuilder();
                     
                     if (result.isSuccess()) {
-                        
                         output.append(result.getOutput());
+                        showSuccessAnimation();
                     } else {
                         output.append("Error: \n").append(result.getErrorMessage());
+                        showErrorAnimation();
                     }
                     
                     outputConsole.setText(output.toString());
                     runButton.setEnabled(true);
+                    
+                    if (editorStatusAnimation != null) {
+                        editorStatusAnimation.cancelAnimation();
+                    }
                 });
                 
             } catch (Exception e) {
                 new Handler(Looper.getMainLooper()).post(() -> {
+                    hideLoadingAnimation();
                     outputConsole.setText("Unexpected error: " + e.getMessage());
                     runButton.setEnabled(true);
+                    showErrorAnimation();
+                    
+                    if (editorStatusAnimation != null) {
+                        editorStatusAnimation.cancelAnimation();
+                    }
                 });
             }
         });
+    }
+    
+    private void newFileWithAnimation() {
+        if (newFilePulse != null) {
+            newFilePulse.cancelAnimation();
+        }
+        
+        newFileButton.animate()
+            .scaleX(0.8f)
+            .scaleY(0.8f)
+            .setDuration(100)
+            .setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    codeEditor.setText("");
+                    outputConsole.setText("Ready for new code...");
+                    
+                    newFileButton.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(100)
+                        .setListener(null)
+                        .start();
+                    
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (newFilePulse != null) {
+                            newFilePulse.playAnimation();
+                        }
+                    }, 1000);
+                }
+            })
+            .start();
+    }
+    
+    private void showLoadingAnimation() {
+        runButton.setVisibility(View.INVISIBLE);
+        runButtonLoading.setVisibility(View.VISIBLE);
+        runButtonLoading.playAnimation();
+        
+        if (runButtonPulse != null) {
+            runButtonPulse.pauseAnimation();
+        }
+    }
+    
+    private void hideLoadingAnimation() {
+        runButtonLoading.cancelAnimation();
+        runButtonLoading.setVisibility(View.GONE);
+        runButton.setVisibility(View.VISIBLE);
+        
+        if (runButtonPulse != null) {
+            runButtonPulse.resumeAnimation();
+        }
+    }
+    
+    private void showSuccessAnimation() {
+        resultAnimation.setAnimation("success_animation.json");
+        showAnimationOverlay();
+        resultAnimation.playAnimation();
+        
+        new Handler(Looper.getMainLooper()).postDelayed(this::hideAnimationOverlay, 2000);
+    }
+    
+    private void showErrorAnimation() {
+        resultAnimation.setAnimation("error_animation.json");
+        resultAnimation.setSpeed(1.0f);
+        showAnimationOverlay();
+        resultAnimation.playAnimation();
+        
+        new Handler(Looper.getMainLooper()).postDelayed(this::hideAnimationOverlay, 2000);
+    }
+    
+    private void showAnimationOverlay() {
+        animationOverlay.setVisibility(View.VISIBLE);
+        animationOverlay.setAlpha(0f);
+        animationOverlay.animate()
+            .alpha(1f)
+            .setDuration(300)
+            .start();
+    }
+    
+    private void hideAnimationOverlay() {
+        animationOverlay.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    animationOverlay.setVisibility(View.GONE);
+                    resultAnimation.cancelAnimation();
+                }
+            })
+            .start();
     }
     
     private void loadSampleCode() {
@@ -179,6 +360,11 @@ public class MainActivity extends AppCompatActivity {
             String selectedTemplate = CodeTemplates.getTemplate(which);
             codeEditor.setText(selectedTemplate);
             Toast.makeText(MainActivity.this, "Template loaded: " + templateNames[which], Toast.LENGTH_SHORT).show();
+            
+            if (editorStatusAnimation != null) {
+                editorStatusAnimation.setAnimation("success_animation.json");
+                editorStatusAnimation.playAnimation();
+            }
         });
         
         builder.setNegativeButton("Cancel", null);
@@ -188,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
     private void showAboutDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("About SnipRun IDE");
-        builder.setMessage("SnipRun IDE v3.0\n\nAndroid Java Interpreter\n\nFeatures:\n• Android-compatible Java interpretation\n• Real-time code parsing and execution\n• JavaParser-based syntax validation\n• Clean and simple interface\n• Educational Java environment\n• Copy output to clipboard\n\nPowered by JavaParser 3.25.5\nInspired by Cosmic IDE architecture");
+        builder.setMessage("SnipRun IDE v4.0\n\nModern Android Java Interpreter\n\nFeatures:\n• Beautiful Lottie animations\n• Modern Material Design 3\n• Android-compatible Java interpretation\n• Real-time code parsing and execution\n• JavaParser-based syntax validation\n• Enhanced user experience\n• Educational Java environment\n• Copy output to clipboard\n\nPowered by:\n• Lottie Android 6.6.7\n• JavaParser 3.25.5\n• Material Design 3\n\nDesigned for modern coding experience");
         builder.setPositiveButton("OK", null);
         builder.show();
     }
@@ -206,13 +392,56 @@ public class MainActivity extends AppCompatActivity {
         clipboard.setPrimaryClip(clip);
         
         Toast.makeText(this, "Output copied to clipboard", Toast.LENGTH_SHORT).show();
+        
+        copyOutputButton.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(100)
+            .setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    copyOutputButton.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(100)
+                        .setListener(null)
+                        .start();
+                }
+            })
+            .start();
     }
     
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null) {
-            executorService.shutdown();
+    protected void onPause() {
+        super.onPause();
+        if (toolbarLogoAnimation != null && toolbarLogoAnimation.isAnimating()) {
+            toolbarLogoAnimation.pauseAnimation();
+        }
+        if (explorerIcon != null && explorerIcon.isAnimating()) {
+            explorerIcon.pauseAnimation();
+        }
+        if (runButtonPulse != null && runButtonPulse.isAnimating()) {
+            runButtonPulse.pauseAnimation();
+        }
+        if (newFilePulse != null && newFilePulse.isAnimating()) {
+            newFilePulse.pauseAnimation();
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (toolbarLogoAnimation != null) {
+            toolbarLogoAnimation.resumeAnimation();
+        }
+        if (explorerIcon != null) {
+            explorerIcon.resumeAnimation();
+        }
+        if (runButtonPulse != null) {
+            runButtonPulse.resumeAnimation();
+        }
+        if (newFilePulse != null && codeEditor.getText().toString().trim().isEmpty()) {
+            newFilePulse.resumeAnimation();
         }
     }
 }

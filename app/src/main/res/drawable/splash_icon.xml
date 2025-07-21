@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background Circle -->
+    <path
+        android:fillColor="@color/accent_blue"
+        android:pathData="M54,54m-45,0a45,45 0,1 1,90 0a45,45 0,1 1,-90 0" />
+    
+    <!-- Code Symbol -->
+    <group android:translateX="54" android:translateY="54">
+        <!-- Left Bracket -->
+        <path
+            android:fillColor="@color/white"
+            android:pathData="M-15,-20 L-20,-20 Q-25,-20 -25,-15 L-25,15 Q-25,20 -20,20 L-15,20 L-15,15 L-20,15 L-20,-15 L-15,-15 Z" />
+        
+        <!-- Right Bracket -->
+        <path
+            android:fillColor="@color/white"
+            android:pathData="M15,-20 L20,-20 Q25,-20 25,-15 L25,15 Q25,20 20,20 L15,20 L15,15 L20,15 L20,-15 L15,-15 Z" />
+        
+        <!-- Slash -->
+        <path
+            android:fillColor="@color/white"
+            android:strokeColor="@color/white"
+            android:strokeWidth="2"
+            android:pathData="M-5,20 L5,-20" />
+    </group>
+</vector>

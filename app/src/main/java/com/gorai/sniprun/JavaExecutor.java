@@ -127,11 +127,6 @@ public class JavaExecutor {
                     executeStatements(sourceCode);
                 }
                 
-                String capturedOutput = getOutput();
-                if (capturedOutput != null && !capturedOutput.trim().isEmpty()) {
-                    output.append(capturedOutput);
-                }
-                
                 String result = output.toString();
                 return result.isEmpty() ? "Code executed successfully (no output)" : result;
                 
@@ -206,7 +201,6 @@ public class JavaExecutor {
                 String expression = matcher.group(1);
                 Object value = evaluateExpression(expression);
                 output.append(value).append("\n");
-                System.out.println(value);
             }
         }
         

@@ -1,30 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp"
-    android:background="?android:attr/selectableItemBackground">
+    android:layout_margin="2dp"
+    app:cardBackgroundColor="@color/surface_color"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:rippleColor="@color/accent_blue">
 
-    <ImageView
-        android:id="@+id/node_icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        tools:src="@drawable/ic_file" />
-
-    <TextView
-        android:id="@+id/node_name"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"
-        android:textColor="@color/code_text"
-        android:textSize="14sp"
-        tools:text="FileName.java" />
+        android:background="?attr/selectableItemBackground"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
 
-</LinearLayout> 
+        <!-- File/Folder Icon with Animation -->
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/file_icon_animation"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="12dp"
+            app:lottie_fileName="coding_animation.json"
+            app:lottie_loop="false"
+            app:lottie_autoPlay="false" />
+
+        <!-- File/Folder Name -->
+        <TextView
+            android:id="@+id/node_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/header_text"
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="FileName.java" />
+
+        <!-- File Type Badge -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/file_type_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="JAVA"
+            android:textSize="10sp"
+            android:textColor="@color/white"
+            app:chipBackgroundColor="@color/accent_blue"
+            app:chipMinHeight="20dp"
+            app:chipStartPadding="6dp"
+            app:chipEndPadding="6dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView> 

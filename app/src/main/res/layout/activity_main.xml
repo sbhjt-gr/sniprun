@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,196 +9,370 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
+    <!-- App Bar with Lottie Animation -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="@color/toolbar_background"
-        android:elevation="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+        app:elevation="8dp">
 
-    <LinearLayout
-        android:id="@+id/main_content"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/toolbar_background"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <LinearLayout
-            android:id="@+id/file_browser_panel"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@color/panel_background"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/header_background"
-                android:padding="8dp"
-                android:text="Project Explorer"
-                android:textColor="@color/header_text"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/file_tree_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/list_background"
-                android:padding="4dp" />
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="@color/divider_color" />
-
-        <LinearLayout
-            android:id="@+id/editor_panel"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:orientation="vertical">
-
+            <!-- Lottie Animation in Toolbar -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="2"
-                android:orientation="vertical"
-                android:background="@color/editor_background">
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/toolbar_logo_animation"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
+                    app:lottie_fileName="coding_animation.json"
+                    app:lottie_loop="true"
+                    app:lottie_autoPlay="true" />
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/header_background"
-                    android:padding="8dp"
-                    android:text="Code Editor"
+                    android:text="SnipRun IDE"
                     android:textColor="@color/header_text"
-                    android:textSize="14sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="8dp">
-
-                    <EditText
-                        android:id="@+id/code_editor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/editor_background"
-                        android:fontFamily="monospace"
-                        android:gravity="top|start"
-                        android:hint="Enter your Java code here..."
-                        android:inputType="textMultiLine|textNoSuggestions"
-                        android:minHeight="300dp"
-                        android:padding="12dp"
-                        android:scrollbars="vertical"
-                        android:textColor="@color/code_text"
-                        android:textColorHint="@color/hint_text"
-                        android:textSize="14sp" />
-
-                </ScrollView>
 
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider_color" />
+        </androidx.appcompat.widget.Toolbar>
 
-            <LinearLayout
-                android:id="@+id/console_panel"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content with Enhanced Design -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <!-- Left Panel - Project Explorer with Animation -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@color/console_background"
-                android:orientation="vertical">
+                android:layout_marginEnd="4dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/header_background"
-                    android:orientation="horizontal"
-                    android:padding="8dp">
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
-                    <TextView
-                        android:layout_width="0dp"
+                    <!-- Header with Icon Animation -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Output Console"
-                        android:textColor="@color/header_text"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingBottom="8dp">
 
-                    <ImageButton
-                        android:id="@+id/copy_output_button"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@android:drawable/ic_menu_share"
-                        android:contentDescription="Copy output to clipboard"
-                        android:padding="4dp"
-                        android:scaleType="centerInside" />
+                        <com.airbnb.lottie.LottieAnimationView
+                            android:id="@+id/explorer_icon"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="8dp"
+                            app:lottie_fileName="coding_animation.json"
+                            app:lottie_loop="true"
+                            app:lottie_autoPlay="true" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Project Explorer"
+                            android:textColor="@color/header_text"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <!-- File Tree -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/file_tree_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp"
+                        android:background="@color/list_background"
+                        android:nestedScrollingEnabled="false"
+                        android:padding="8dp" />
 
                 </LinearLayout>
 
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="8dp">
+            </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        android:id="@+id/output_console"
+            <!-- Right Panel - Editor and Console -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:layout_marginStart="4dp"
+                android:orientation="vertical">
+
+                <!-- Code Editor Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardBackgroundColor="@color/card_background"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/console_background"
-                        android:fontFamily="monospace"
-                        android:minHeight="100dp"
-                        android:padding="12dp"
-                        android:text="Ready to run code...\n"
-                        android:textColor="@color/console_text"
-                        android:textSize="12sp" />
+                        android:orientation="vertical">
 
-                </ScrollView>
+                        <!-- Editor Header -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/header_background"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Code Editor"
+                                android:textColor="@color/header_text"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <!-- Status Animation -->
+                            <com.airbnb.lottie.LottieAnimationView
+                                android:id="@+id/editor_status_animation"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                app:lottie_fileName="coding_animation.json"
+                                app:lottie_loop="true"
+                                app:lottie_autoPlay="false" />
+
+                        </LinearLayout>
+
+                        <!-- Code Editor -->
+                        <androidx.core.widget.NestedScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:maxHeight="400dp"
+                            android:padding="12dp">
+
+                            <EditText
+                                android:id="@+id/code_editor"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/editor_background"
+                                android:fontFamily="monospace"
+                                android:gravity="top|start"
+                                android:hint="Enter your Java code here..."
+                                android:inputType="textMultiLine|textNoSuggestions"
+                                android:minHeight="300dp"
+                                android:padding="16dp"
+                                android:scrollbars="vertical"
+                                android:textColor="@color/code_text"
+                                android:textColorHint="@color/hint_text"
+                                android:textSize="14sp" />
+
+                        </androidx.core.widget.NestedScrollView>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Console Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/card_background"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Console Header -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/header_background"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Output Console"
+                                android:textColor="@color/header_text"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <!-- Copy Button with Animation -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/copy_output_button"
+                                style="@style/Widget.Material3.Button.IconButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:contentDescription="Copy output to clipboard"
+                                app:icon="@android:drawable/ic_menu_share"
+                                app:iconTint="@color/accent_blue" />
+
+                        </LinearLayout>
+
+                        <!-- Console Output -->
+                        <androidx.core.widget.NestedScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:maxHeight="250dp"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:id="@+id/output_console"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/console_background"
+                                android:fontFamily="monospace"
+                                android:minHeight="150dp"
+                                android:padding="16dp"
+                                android:text="Ready to run code...\n"
+                                android:textColor="@color/console_text"
+                                android:textSize="12sp" />
+
+                        </androidx.core.widget.NestedScrollView>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
 
         </LinearLayout>
 
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Floating Action Buttons with Enhanced Design -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:orientation="vertical">
+
+        <!-- Secondary FAB - New File -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <!-- Pulse Animation Background -->
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/new_file_pulse"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                app:lottie_fileName="pulse_animation.json"
+                app:lottie_loop="true"
+                app:lottie_autoPlay="false" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/new_file_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:contentDescription="New File"
+                android:src="@android:drawable/ic_input_add"
+                app:backgroundTint="@color/new_file_button_color"
+                app:fabSize="mini"
+                app:tint="@color/white" />
+
+        </FrameLayout>
+
+        <!-- Primary FAB - Run Code with Animation -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <!-- Pulse Animation Background -->
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/run_button_pulse"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                app:lottie_fileName="pulse_animation.json"
+                app:lottie_loop="true"
+                app:lottie_autoPlay="true" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/run_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:contentDescription="Run Code"
+                android:src="@android:drawable/ic_media_play"
+                app:backgroundTint="@color/run_button_color"
+                app:fabSize="normal"
+                app:tint="@color/white" />
+
+            <!-- Loading Animation Overlay -->
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/run_button_loading"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                app:lottie_fileName="loading_animation.json"
+                app:lottie_loop="true"
+                app:lottie_autoPlay="false" />
+
+        </FrameLayout>
+
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/run_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_media_play"
-        app:layout_constraintBottom_toTopOf="@+id/new_file_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:fabSize="normal"
-        app:backgroundTint="@color/run_button_color" />
+    <!-- Success/Error Animation Overlay -->
+    <FrameLayout
+        android:id="@+id/animation_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/new_file_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_input_add"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:fabSize="mini"
-        app:backgroundTint="@color/new_file_button_color" />
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/result_animation"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center"
+            app:lottie_loop="false"
+            app:lottie_autoPlay="false" />
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+    </FrameLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout> 

@@ -1,13 +1,59 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.SnipRun" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/toolbar_background</item>
-        <item name="colorPrimaryVariant">@color/ide_background</item>
+    <!-- Main App Theme with Modern Design -->
+    <style name="Theme.SnipRun" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary Colors -->
+        <item name="colorPrimary">@color/accent_blue</item>
+        <item name="colorPrimaryVariant">@color/toolbar_background</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/run_button_color</item>
-        <item name="colorSecondaryVariant">@color/new_file_button_color</item>
+        
+        <!-- Secondary Colors -->
+        <item name="colorSecondary">@color/accent_green</item>
+        <item name="colorSecondaryVariant">@color/accent_purple</item>
         <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Surface Colors -->
+        <item name="colorSurface">@color/surface_color</item>
+        <item name="colorOnSurface">@color/header_text</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        
+        <!-- Background Colors -->
+        <item name="android:colorBackground">@color/ide_background</item>
+        <item name="colorOnBackground">@color/header_text</item>
+        
+        <!-- System UI -->
         <item name="android:statusBarColor">@color/toolbar_background</item>
+        <item name="android:navigationBarColor">@color/ide_background</item>
         <item name="android:windowBackground">@color/ide_background</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        
+        <!-- Material Design 3 -->
+        <item name="materialCardViewStyle">@style/Widget.SnipRun.CardView</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SnipRun.FloatingActionButton</item>
+        <item name="materialButtonStyle">@style/Widget.SnipRun.Button</item>
     </style>
+    
+    <!-- Custom Card Style -->
+    <style name="Widget.SnipRun.CardView" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="rippleColor">@color/accent_blue</item>
+    </style>
+    
+    <!-- Custom FAB Style -->
+    <style name="Widget.SnipRun.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">@color/run_button_color</item>
+        <item name="tint">@color/white</item>
+        <item name="elevation">8dp</item>
+        <item name="pressedTranslationZ">12dp</item>
+    </style>
+    
+    <!-- Custom Button Style -->
+    <style name="Widget.SnipRun.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/accent_blue</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+    
 </resources>
