@@ -1,8 +1,11 @@
 package com.gorai.sniprun;
 
 import java.util.regex.Pattern;
+import java.util.Stack;
 
 public class JavaCodeFormatter {
+    
+    private static final String INDENT = "    ";
     
     public static String format(String code) {
         if (code == null || code.trim().isEmpty()) {
@@ -13,10 +16,18 @@ public class JavaCodeFormatter {
         String[] lines = code.split("\n");
         int indentLevel = 0;
         boolean inMultiLineComment = false;
+        boolean inString = false;
+        Stack<Character> braceStack = new Stack<>();
         
         for (String line : lines) {
             String trimmedLine = line.trim();
             
+            if (trimmedLine.isEmpty()) {
+                formatted.append("\n");
+                continue;
+            }
+            
+            // Handle multi-line comments
             if (trimmedLine.startsWith("/*")) {
                 inMultiLineComment = true;
             }
@@ -29,42 +40,40 @@ public class JavaCodeFormatter {
                 continue;
             }
             
-            if (trimmedLine.startsWith("//") || trimmedLine.isEmpty()) {
+            // Handle single-line comments
+            if (trimmedLine.startsWith("//")) {
                 formatted.append(getIndent(indentLevel)).append(trimmedLine).append("\n");
                 continue;
             }
             
+            // Check for closing braces at the start of line
             if (trimmedLine.startsWith("}")) {
                 indentLevel = Math.max(0, indentLevel - 1);
             }
             
+            // Add proper indentation
             formatted.append(getIndent(indentLevel)).append(trimmedLine);
             
+            // Check for opening braces at the end of line
             if (trimmedLine.endsWith("{")) {
                 indentLevel++;
             }
             
-            if (!trimmedLine.endsWith(";") && !trimmedLine.endsWith("{") && 
-                !trimmedLine.endsWith("}") && !trimmedLine.isEmpty()) {
-                
-                if (isControlStructure(trimmedLine) || isMethodDeclaration(trimmedLine) || 
-                    isClassDeclaration(trimmedLine)) {
-                    
-                } else {
-                    
-                }
+            // Handle case and default statements
+            if (trimmedLine.startsWith("case ") || trimmedLine.startsWith("default:")) {
+                // These are typically indented one level less than regular statements in switch blocks
             }
             
             formatted.append("\n");
         }
         
-        return formatted.toString();
+        return formatted.toString().trim();
     }
     
     private static String getIndent(int level) {
         StringBuilder indent = new StringBuilder();
         for (int i = 0; i < level; i++) {
-            indent.append("    ");
+            indent.append(INDENT);
         }
         return indent.toString();
     }
@@ -89,5 +98,23 @@ public class JavaCodeFormatter {
         return trimmed.startsWith("class ") || trimmed.startsWith("interface ") ||
                trimmed.startsWith("enum ") || trimmed.contains("class ") ||
                trimmed.contains("interface ") || trimmed.contains("enum ");
+    }
+    
+    public static String formatJavaCode(String code) {
+        return format(code);
+    }
+    
+    public static String addMinimalFormatting(String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return code;
+        }
+        
+        // Add basic spacing and line breaks for readability
+        return code
+            .replaceAll("\\{", " {\n")
+            .replaceAll("\\}", "\n}\n")
+            .replaceAll(";", ";\n")
+            .replaceAll("\\n\\s*\\n", "\n")
+            .trim();
     }
 }

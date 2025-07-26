@@ -58,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
         executorService = Executors.newSingleThreadExecutor();
         javaExecutor = new JavaExecutor(this);
         
+        // Test our compilers
+        testCompilers();
+        
         loadSampleCode();
         startInitialAnimations();
     }
@@ -149,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
         
         showLoadingAnimation();
         
-        outputConsole.setText("Parsing and executing Java code...\nUsing Android-compatible Java interpreter.\n");
+        outputConsole.setText("Compiling Java code with Eclipse JDT Compiler...\nUsing professional-grade compilation engine.\n");
         runButton.setEnabled(false);
         
         if (editorStatusAnimation != null) {
@@ -164,17 +167,20 @@ public class MainActivity extends AppCompatActivity {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     hideLoadingAnimation();
                     
-                    StringBuilder output = new StringBuilder();
-                    
                     if (result.isSuccess()) {
-                        output.append(result.getOutput());
+                        outputConsole.setText(result.getOutput());
                         showSuccessAnimation();
                     } else {
-                        output.append("Error: \n").append(result.getErrorMessage());
+                        // Show detailed compilation errors
+                        String errorOutput = result.getFormattedErrorMessage();
+                        if (errorOutput == null || errorOutput.trim().isEmpty()) {
+                            errorOutput = "Compilation failed: " + 
+                                (result.getErrorMessage() != null ? result.getErrorMessage() : "Unknown error");
+                        }
+                        outputConsole.setText(errorOutput);
                         showErrorAnimation();
                     }
                     
-                    outputConsole.setText(output.toString());
                     runButton.setEnabled(true);
                     
                     if (editorStatusAnimation != null) {
@@ -185,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     hideLoadingAnimation();
-                    outputConsole.setText("Unexpected error: " + e.getMessage());
+                    outputConsole.setText("✗ System Error: " + e.getMessage() + 
+                        "\n\nThis might be due to a configuration issue. Please try again.");
                     runButton.setEnabled(true);
                     showErrorAnimation();
                     
@@ -324,6 +331,34 @@ public class MainActivity extends AppCompatActivity {
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         outputConsole.setText("Error: " + message);
+    }
+    
+    private void testCompilers() {
+        android.util.Log.d("MainActivity", "Testing compilers on startup...");
+        
+        // Simple test code
+        String testCode = "System.out.println(\"Test output: \" + (5 + 3));";
+        
+        executorService.execute(() -> {
+            try {
+                android.util.Log.d("MainActivity", "Executing test code: " + testCode);
+                JavaExecutor.ExecutionResult result = javaExecutor.executeJavaCode(testCode);
+                
+                if (result.isSuccess()) {
+                    android.util.Log.d("MainActivity", "✓ Compiler test SUCCESS - Output: " + result.getOutput());
+                } else {
+                    android.util.Log.d("MainActivity", "✗ Compiler test FAILED - Error: " + result.getErrorMessage());
+                    String formatted = result.getFormattedErrorMessage();
+                    if (formatted != null && !formatted.trim().isEmpty()) {
+                        android.util.Log.d("MainActivity", "Formatted error: " + formatted);
+                    }
+                }
+                android.util.Log.d("MainActivity", "Test execution time: " + result.getExecutionTimeMs() + "ms");
+                
+            } catch (Exception e) {
+                android.util.Log.e("MainActivity", "Compiler test failed with exception", e);
+            }
+        });
     }
     
     @Override
