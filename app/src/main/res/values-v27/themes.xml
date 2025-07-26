@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SnipRun" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/accent_blue</item>
+        <item name="colorPrimaryVariant">@color/toolbar_background</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <item name="colorSecondary">@color/accent_green</item>
+        <item name="colorSecondaryVariant">@color/accent_purple</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <item name="colorSurface">@color/surface_color</item>
+        <item name="colorOnSurface">@color/header_text</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        
+        <item name="android:colorBackground">@color/ide_background</item>
+        <item name="colorOnBackground">@color/header_text</item>
+        
+        <item name="android:statusBarColor">@color/toolbar_background</item>
+        <item name="android:navigationBarColor">@color/ide_background</item>
+        <item name="android:windowBackground">@color/ide_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        
+        <item name="materialCardViewStyle">@style/Widget.SnipRun.CardView</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SnipRun.FloatingActionButton</item>
+        <item name="materialButtonStyle">@style/Widget.SnipRun.Button</item>
+    </style>
+</resources>

@@ -10,12 +10,16 @@
     <color name="header_background">#FF21262D</color>
     <color name="editor_background">#FF0D1117</color>
     <color name="console_background">#FF0C0E11</color>
+    <color name="console_header">#FF21262D</color>
     <color name="list_background">#FF1C2128</color>
     
     <!-- Text Colors -->
     <color name="header_text">#FFF0F6FC</color>
     <color name="code_text">#FFF0F6FC</color>
+    <color name="editor_text">#FFF0F6FC</color>
+    <color name="body_text">#FFE6EDF3</color>
     <color name="console_text">#FF7EE787</color>
+    <color name="console_header_text">#FFF0F6FC</color>
     <color name="hint_text">#FF7D8590</color>
     
     <!-- UI Elements -->
@@ -24,6 +28,7 @@
     <!-- Animated Button Colors -->
     <color name="run_button_color">#FF238636</color>
     <color name="new_file_button_color">#FF1F6FEB</color>
+    <color name="fab_secondary">#FF1F6FEB</color>
     
     <!-- Accent Colors -->
     <color name="accent_blue">#FF58A6FF</color>

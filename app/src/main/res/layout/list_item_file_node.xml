@@ -19,41 +19,56 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- File/Folder Icon with Animation -->
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/file_icon_animation"
+        <!-- File/Folder Icon -->
+        <ImageView
+            android:id="@+id/file_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginEnd="12dp"
-            app:lottie_fileName="coding_animation.json"
-            app:lottie_loop="false"
-            app:lottie_autoPlay="false" />
+            android:src="@drawable/ic_file"
+            app:tint="@color/accent_blue" />
 
-        <!-- File/Folder Name -->
-        <TextView
-            android:id="@+id/node_name"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/header_text"
-            android:textSize="14sp"
-            android:maxLines="2"
-            android:ellipsize="end"
-            tools:text="FileName.java" />
+            android:orientation="vertical">
 
-        <!-- File Type Badge -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/file_type_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="JAVA"
-            android:textSize="10sp"
-            android:textColor="@color/white"
-            app:chipBackgroundColor="@color/accent_blue"
-            app:chipMinHeight="20dp"
-            app:chipStartPadding="6dp"
-            app:chipEndPadding="6dp"
-            android:visibility="gone" />
+            <!-- File/Folder Name -->
+            <TextView
+                android:id="@+id/file_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/header_text"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="FileName.java" />
+
+            <!-- File Details -->
+            <TextView
+                android:id="@+id/file_details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/body_text"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Java File • 1.2 KB" />
+
+        </LinearLayout>
+
+        <!-- Options Icon -->
+        <ImageView
+            android:id="@+id/options_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_more_vert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp"
+            android:contentDescription="Options"
+            app:tint="@color/body_text" />
 
     </LinearLayout>
 
