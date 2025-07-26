@@ -27,7 +27,6 @@ public class JavaCodeFormatter {
                 continue;
             }
             
-            // Handle multi-line comments
             if (trimmedLine.startsWith("/*")) {
                 inMultiLineComment = true;
             }
@@ -40,28 +39,22 @@ public class JavaCodeFormatter {
                 continue;
             }
             
-            // Handle single-line comments
             if (trimmedLine.startsWith("//")) {
                 formatted.append(getIndent(indentLevel)).append(trimmedLine).append("\n");
                 continue;
             }
             
-            // Check for closing braces at the start of line
             if (trimmedLine.startsWith("}")) {
                 indentLevel = Math.max(0, indentLevel - 1);
             }
             
-            // Add proper indentation
             formatted.append(getIndent(indentLevel)).append(trimmedLine);
             
-            // Check for opening braces at the end of line
             if (trimmedLine.endsWith("{")) {
                 indentLevel++;
             }
             
-            // Handle case and default statements
             if (trimmedLine.startsWith("case ") || trimmedLine.startsWith("default:")) {
-                // These are typically indented one level less than regular statements in switch blocks
             }
             
             formatted.append("\n");
@@ -109,7 +102,6 @@ public class JavaCodeFormatter {
             return code;
         }
         
-        // Add basic spacing and line breaks for readability
         return code
             .replaceAll("\\{", " {\n")
             .replaceAll("\\}", "\n}\n")

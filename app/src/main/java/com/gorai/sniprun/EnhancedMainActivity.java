@@ -105,7 +105,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
         newFileButton = findViewById(R.id.new_file_button);
         copyOutputButton = findViewById(R.id.copy_output_button);
         
-        // Initialize Lottie animation views
         toolbarLogoAnimation = findViewById(R.id.toolbar_logo_animation);
         explorerIcon = findViewById(R.id.explorer_icon);
         editorStatusAnimation = findViewById(R.id.editor_status_animation);
@@ -118,7 +117,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 toolbarLogoAnimation.setAnimation("coding_animation.json");
                 toolbarLogoAnimation.setRepeatCount(0);
             } catch (Exception e) {
-                // Fallback if animation file doesn't exist
                 toolbarLogoAnimation.setVisibility(View.GONE);
             }
         }
@@ -129,7 +127,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 explorerIcon.setRepeatCount(0);
                 explorerIcon.setOnClickListener(v -> toggleFileExplorer());
             } catch (Exception e) {
-                // Fallback if animation file doesn't exist
                 explorerIcon.setOnClickListener(v -> toggleFileExplorer());
             }
         }
@@ -139,7 +136,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 editorStatusAnimation.setAnimation("typing_animation.json");
                 editorStatusAnimation.setRepeatCount(0);
             } catch (Exception e) {
-                // Fallback if animation file doesn't exist
                 editorStatusAnimation.setVisibility(View.GONE);
             }
         }
@@ -150,7 +146,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 runButtonLoading.setRepeatCount(-1);
                 runButtonLoading.setVisibility(View.GONE);
             } catch (Exception e) {
-                // Fallback if animation file doesn't exist
                 runButtonLoading.setVisibility(View.GONE);
             }
         }
@@ -183,7 +178,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             public void onTabReselected(TabLayout.Tab tab) {}
         });
         
-        // Add initial "Main" tab
         TabLayout.Tab mainTab = tabLayout.newTab().setText("Main");
         tabLayout.addTab(mainTab);
     }
@@ -194,7 +188,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 try {
                     toolbarLogoAnimation.playAnimation();
                 } catch (Exception e) {
-                    // Ignore animation errors
                 }
             }
             
@@ -202,7 +195,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 try {
                     editorStatusAnimation.playAnimation();
                 } catch (Exception e) {
-                    // Ignore animation errors
                 }
             }
         }, 500);
@@ -222,18 +214,15 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             return;
         }
         
-        // Show loading animation
         runButton.setVisibility(View.GONE);
         if (runButtonLoading != null) {
             runButtonLoading.setVisibility(View.VISIBLE);
             try {
                 runButtonLoading.playAnimation();
             } catch (Exception e) {
-                // Ignore animation errors
             }
         }
         
-        // Clear previous output
         outputConsole.setText("Running code...\n");
         
         executorService.execute(() -> {
@@ -247,13 +236,11 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                         outputConsole.setText("Error: " + result.getErrorMessage());
                     }
                     
-                    // Hide loading animation
                     if (runButtonLoading != null) {
                         runButtonLoading.setVisibility(View.GONE);
                         try {
                             runButtonLoading.pauseAnimation();
                         } catch (Exception e) {
-                            // Ignore animation errors
                         }
                     }
                     runButton.setVisibility(View.VISIBLE);
@@ -263,13 +250,11 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 runOnUiThread(() -> {
                     outputConsole.setText("Error: " + e.getMessage());
                     
-                    // Hide loading animation
                     if (runButtonLoading != null) {
                         runButtonLoading.setVisibility(View.GONE);
                         try {
                             runButtonLoading.pauseAnimation();
                         } catch (Exception ex) {
-                            // Ignore animation errors
                         }
                     }
                     runButton.setVisibility(View.VISIBLE);
@@ -311,8 +296,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
     }
     
     private void switchToTab(int position) {
-        // Handle tab switching logic here
-        // For now, just update the current file name
         TabLayout.Tab tab = tabLayout.getTabAt(position);
         if (tab != null && tab.getText() != null) {
             currentFileName = tab.getText().toString();
@@ -336,7 +319,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
         Fragment existingFragment = fragmentManager.findFragmentById(R.id.fragment_container);
         
         if (existingFragment == null && !isFileExplorerOpen) {
-            // Open file explorer
             FileExplorerFragment fileExplorerFragment = new FileExplorerFragment();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.replace(R.id.fragment_container, fileExplorerFragment);
@@ -345,17 +327,14 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             
             isFileExplorerOpen = true;
             
-            // Animate explorer icon
             if (explorerIcon != null) {
                 try {
                     explorerIcon.playAnimation();
                 } catch (Exception e) {
-                    // Ignore animation errors
                 }
             }
             
         } else if (existingFragment != null && isFileExplorerOpen) {
-            // Close file explorer
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.remove(existingFragment);
             transaction.commit();
@@ -372,7 +351,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             currentFileName = fileName;
             currentFilePath = filePath;
             
-            // Add or switch to tab for this file
             boolean tabExists = false;
             for (int i = 0; i < tabLayout.getTabCount(); i++) {
                 TabLayout.Tab tab = tabLayout.getTabAt(i);
@@ -430,7 +408,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
         String code = codeEditor.getText().toString();
         
         if (currentFilePath != null) {
-            // Save to existing file
             try {
                 fileManager.saveFile(currentFilePath, code);
                 Toast.makeText(this, "File saved: " + currentFileName, Toast.LENGTH_SHORT).show();
@@ -438,7 +415,6 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
                 Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         } else {
-            // Save as new file
             saveAsNewFile(code);
         }
     }
@@ -475,10 +451,7 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
     }
     
     private void openSettings() {
-        // TODO: Implement SettingsActivity
         Toast.makeText(this, "Settings not implemented yet", Toast.LENGTH_SHORT).show();
-        // Intent intent = new Intent(this, SettingsActivity.class);
-        // startActivity(intent);
     }
     
     private void showAboutDialog() {

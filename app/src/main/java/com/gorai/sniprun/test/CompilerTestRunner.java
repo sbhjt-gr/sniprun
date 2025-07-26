@@ -9,9 +9,7 @@ public class CompilerTestRunner {
     private static final String TAG = "CompilerTest";
     
     public static void testCompilers(Context context) {
-        Log.d(TAG, "Starting compiler tests...");
         
-        // Test code samples
         String simpleCode = "System.out.println(\"Hello World!\");";
         String complexCode = "import java.util.*;\n" +
                            "public class Test {\n" +
@@ -22,11 +20,9 @@ public class CompilerTestRunner {
                            "    }\n" +
                            "}";
         
-        // Test Eclipse JDT Professional Compiler
         testProfessionalCompiler(context, simpleCode);
         testProfessionalCompiler(context, complexCode);
         
-        // Test Android Compatible Compiler
         testAndroidCompatibleCompiler(context, simpleCode);
         testAndroidCompatibleCompiler(context, complexCode);
         

@@ -79,7 +79,6 @@ public class ProfessionalJavaCompiler {
             
             cleanupDirectories();
         } catch (Exception e) {
-            Log.e(TAG, "Failed to initialize directories", e);
         }
     }
     
@@ -88,7 +87,6 @@ public class ProfessionalJavaCompiler {
             deleteDirectoryContents(classDirectory);
             deleteDirectoryContents(tempDirectory);
         } catch (Exception e) {
-            Log.e(TAG, "Failed to cleanup directories", e);
         }
     }
     
@@ -114,7 +112,6 @@ public class ProfessionalJavaCompiler {
                 return new CompilationResult(false, "", "Source code is empty", null, 0);
             }
             
-            // Validate code security before compilation
             try {
                 CodeSecurityValidator.validateCodeSafety(sourceCode);
             } catch (SecurityException e) {
@@ -130,34 +127,29 @@ public class ProfessionalJavaCompiler {
                 sourceCode = wrapInClass(sourceCode, className);
             }
             
-            // Validate basic syntax first
             List<String> syntaxErrors = validateSyntax(sourceCode);
             if (!syntaxErrors.isEmpty()) {
                 return new CompilationResult(false, "", "Syntax validation failed", 
                                            syntaxErrors, System.currentTimeMillis() - startTime);
             }
             
-            // Write source code to file
             File sourceFile = new File(sourceDirectory, className + ".java");
             try (FileWriter writer = new FileWriter(sourceFile)) {
                 writer.write(sourceCode);
             }
             
-            // Compile using Eclipse JDT
             List<String> compilationErrors = compileWithECJ(sourceFile, className);
             if (!compilationErrors.isEmpty()) {
                 return new CompilationResult(false, "", "Compilation failed", 
                                            compilationErrors, System.currentTimeMillis() - startTime);
             }
             
-            // Execute compiled bytecode
             String output = executeCompiledCode(className);
             
             return new CompilationResult(true, output, null, null, 
                                        System.currentTimeMillis() - startTime);
             
         } catch (Exception e) {
-            Log.e(TAG, "Compilation error", e);
             return new CompilationResult(false, "", "Internal error: " + e.getMessage(), 
                                        null, System.currentTimeMillis() - startTime);
         } finally {
@@ -172,7 +164,6 @@ public class ProfessionalJavaCompiler {
     }
     
     private String wrapInClass(String code, String className) {
-        // Check if it's a complete main method or just statements
         if (code.contains("public static void main")) {
             return "public class " + className + " {\n" + code + "\n}";
         } else {
@@ -187,7 +178,6 @@ public class ProfessionalJavaCompiler {
     private List<String> validateSyntax(String sourceCode) {
         List<String> errors = new ArrayList<>();
         
-        // Basic syntax validation
         int openBraces = 0;
         int closeBraces = 0;
         int openParens = 0;
@@ -264,42 +254,45 @@ public class ProfessionalJavaCompiler {
             ByteArrayOutputStream compilerOutput = new ByteArrayOutputStream();
             PrintWriter compilerWriter = new PrintWriter(compilerOutput);
             
-            // Prepare compiler arguments with Android-specific settings
             List<String> args = new ArrayList<>();
             args.add("-d");
             args.add(classDirectory.getAbsolutePath());
-            args.add("-cp");
+            args.add("-cp");  
             args.add(getAndroidClasspath());
             args.add("-source");
-            args.add("11");
+            args.add("8");
             args.add("-target");
-            args.add("11");
-            args.add("-nowarn");
-            args.add("-g");
+            args.add("8");
             args.add("-encoding");
             args.add("UTF-8");
-            args.add("-proc:none"); // Disable annotation processing
-            args.add("-XDuseUnsharedTable=true"); // Use unshared symbol table
-            args.add("-XDallowGenerics=true"); // Allow generics
-            args.add("-bootclasspath");
-            args.add(getAndroidBootClasspath());
+            args.add("-proc:none");
+            
+            String bootcp = getAndroidBootClasspath();
+            if (!bootcp.isEmpty()) {
+                args.add("-bootclasspath");
+                args.add(bootcp);
+            }
+            
             args.add(sourceFile.getAbsolutePath());
             
             String[] argsArray = args.toArray(new String[0]);
             
-            // Use Eclipse JDT Batch Compiler with error handling
             boolean success = false;
             try {
+                Log.d(TAG, "Compiling with args: " + Arrays.toString(argsArray));
                 success = BatchCompiler.compile(argsArray, compilerWriter, compilerWriter, null);
+                Log.d(TAG, "Compilation success: " + success);
             } catch (Exception e) {
-                Log.w(TAG, "Eclipse JDT compilation failed, trying alternative approach", e);
+                Log.w(TAG, "Eclipse JDT compilation failed", e);
                 errors.add("Eclipse JDT compilation failed: " + e.getMessage());
-                errors.add("This might be due to missing Android runtime classes");
+                errors.add("Trying to use system classpath: " + System.getProperty("java.class.path", "not available"));
                 return errors;
             }
             
             compilerWriter.close();
             String compilerOutputStr = compilerOutput.toString();
+            
+            Log.d(TAG, "Compiler output: " + compilerOutputStr);
             
             if (!success || !compilerOutputStr.isEmpty()) {
                 if (!compilerOutputStr.isEmpty()) {
@@ -309,14 +302,22 @@ public class ProfessionalJavaCompiler {
                 }
             }
             
-            // Verify class file was created
             File classFile = new File(classDirectory, className + ".class");
+            Log.d(TAG, "Looking for class file: " + classFile.getAbsolutePath());
+            Log.d(TAG, "Class file exists: " + classFile.exists());
+            
             if (!classFile.exists()) {
                 errors.add("Class file was not generated - compilation may have failed silently");
+                
+                File[] files = classDirectory.listFiles();
+                if (files != null) {
+                    Log.d(TAG, "Files in class directory: " + Arrays.toString(files));
+                } else {
+                    Log.d(TAG, "Class directory is empty or doesn't exist");
+                }
             }
             
         } catch (Exception e) {
-            Log.e(TAG, "ECJ compilation error", e);
             errors.add("Compiler initialization error: " + e.getMessage());
             errors.add("This typically indicates missing JDK classes on Android");
         }
@@ -331,7 +332,6 @@ public class ProfessionalJavaCompiler {
     private String getAndroidClasspath() {
         StringBuilder classpath = new StringBuilder();
         
-        // Add current directory
         classpath.append(classDirectory.getAbsolutePath());
         
         return classpath.toString();
@@ -340,51 +340,44 @@ public class ProfessionalJavaCompiler {
     private String getAndroidBootClasspath() {
         StringBuilder bootclasspath = new StringBuilder();
         
-        // Try to find Android runtime classes
-        String[] possiblePaths = {
-            "/system/framework/framework.jar",
-            "/system/framework/core.jar",
-            "/system/framework/ext.jar",
-            "/system/framework/android.jar"
-        };
-        
-        for (String path : possiblePaths) {
-            File jarFile = new File(path);
-            if (jarFile.exists()) {
-                if (bootclasspath.length() > 0) {
-                    bootclasspath.append(File.pathSeparator);
+        try {
+            String javaHome = System.getProperty("java.home");
+            if (javaHome != null) {
+                File rtJar = new File(javaHome, "lib/rt.jar");
+                if (rtJar.exists()) {
+                    bootclasspath.append(rtJar.getAbsolutePath());
+                } else {
+                    File jmodDir = new File(javaHome, "jmods");
+                    if (jmodDir.exists()) {
+                        File[] jmods = jmodDir.listFiles((dir, name) -> name.endsWith(".jmod"));
+                        if (jmods != null) {
+                            for (File jmod : jmods) {
+                                if (bootclasspath.length() > 0) {
+                                    bootclasspath.append(File.pathSeparator);
+                                }
+                                bootclasspath.append(jmod.getAbsolutePath());
+                            }
+                        }
+                    }
                 }
-                bootclasspath.append(path);
             }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not determine Java home path", e);
         }
         
-        // If no Android jars found, create a minimal bootclasspath
         if (bootclasspath.length() == 0) {
-            // Create a temporary minimal rt.jar equivalent
-            try {
-                File minimalRt = createMinimalBootstrapClasses();
-                bootclasspath.append(minimalRt.getAbsolutePath());
-            } catch (Exception e) {
-                Log.w(TAG, "Could not create minimal bootstrap classes", e);
-                // Fallback to current classpath
-                bootclasspath.append(System.getProperty("java.class.path", "."));
+            String classPath = System.getProperty("java.class.path", "");
+            if (!classPath.isEmpty()) {
+                bootclasspath.append(classPath);
+            } else {
+                bootclasspath.append(".");
             }
         }
         
         return bootclasspath.toString();
     }
     
-    private File createMinimalBootstrapClasses() throws Exception {
-        File minimalJar = new File(tempDirectory, "minimal-rt.jar");
-        
-        // For now, just return the temp directory as a classpath entry
-        // In a real implementation, you might want to create a JAR with minimal classes
-        if (!minimalJar.exists()) {
-            minimalJar.createNewFile();
-        }
-        
-        return tempDirectory; // Return directory instead of jar for now
-    }
+
     
     private List<String> parseCompilerErrors(String compilerOutput) {
         List<String> errors = new ArrayList<>();
@@ -392,9 +385,17 @@ public class ProfessionalJavaCompiler {
         
         for (String line : lines) {
             line = line.trim();
-            if (!line.isEmpty() && (line.contains("ERROR") || line.contains("error") || 
-                                   line.contains("Exception") || line.contains("at line"))) {
-                errors.add(formatErrorMessage(line));
+            if (!line.isEmpty()) {
+                if (line.contains("ERROR") || line.contains("error") || 
+                    line.contains("Exception") || line.contains("at line") ||
+                    line.contains("cannot find symbol") || line.contains("package does not exist") ||
+                    line.matches(".*\\.java:[0-9]+:.*")) {
+                    errors.add(formatErrorMessage(line));
+                } else if (line.contains("warning") || line.contains("WARNING")) {
+                    Log.w(TAG, "Compiler warning: " + line);
+                } else if (!line.isEmpty() && !line.startsWith("Note:")) {
+                    Log.d(TAG, "Compiler output: " + line);
+                }
             }
         }
         
@@ -402,7 +403,6 @@ public class ProfessionalJavaCompiler {
     }
     
     private String formatErrorMessage(String rawError) {
-        // Clean up and format error messages for better readability
         String formatted = rawError
             .replaceAll("^[0-9]+\\. ", "")
             .replaceAll("----------", "")
@@ -419,24 +419,19 @@ public class ProfessionalJavaCompiler {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         
-        // Capture output
         originalSystemOut = System.out;
         originalSystemErr = System.err;
         System.setOut(new PrintStream(outputStream));
         System.setErr(new PrintStream(errorStream));
         
-        // Use controlled execution instead of deprecated SecurityManager
         
         try {
-            // Create custom class loader
             URL[] urls = { classDirectory.toURI().toURL() };
             URLClassLoader classLoader = new URLClassLoader(urls, getClass().getClassLoader());
             
-            // Load and execute the class
             Class<?> clazz = classLoader.loadClass(className);
             Method mainMethod = clazz.getMethod("main", String[].class);
             
-            // Execute with timeout and basic security checks
             executeWithSecurityControls(() -> {
                 try {
                     mainMethod.invoke(null, (Object) new String[0]);
@@ -448,7 +443,6 @@ public class ProfessionalJavaCompiler {
             classLoader.close();
             
         } finally {
-            // Restore streams
             restoreSystemStreams();
         }
         
@@ -465,7 +459,6 @@ public class ProfessionalJavaCompiler {
     private void executeWithSecurityControls(Runnable task, long timeout, TimeUnit unit) throws Exception {
         Thread executionThread = new Thread(() -> {
             try {
-                // Basic security checks before execution
                 checkSystemExitCalls();
                 task.run();
             } catch (SecurityException e) {
@@ -489,19 +482,13 @@ public class ProfessionalJavaCompiler {
     }
     
     private void checkSystemExitCalls() {
-        // Basic security check - can be expanded
-        // This is a placeholder for security validations
     }
     
     private void installSecurityManager() {
-        // Security manager is deprecated in newer Java versions
-        // Using alternative security measures through restricted execution
-        originalSecurityManager = null; // Keep for compatibility but don't use deprecated methods
+        originalSecurityManager = null;
     }
     
     private void restoreSecurityManager() {
-        // Security manager restoration not needed with deprecated API
-        // Alternative security measures handled at execution level
     }
     
     private void restoreSystemStreams() {
@@ -517,14 +504,12 @@ public class ProfessionalJavaCompiler {
         try {
             cleanupDirectories();
         } catch (Exception e) {
-            Log.e(TAG, "Cleanup failed", e);
         }
     }
     
     private static class CodeSecurityValidator {
         
         public static void validateCodeSafety(String sourceCode) throws SecurityException {
-            // Basic security validations
             if (sourceCode.contains("System.exit")) {
                 throw new SecurityException("System.exit() calls are not allowed");
             }

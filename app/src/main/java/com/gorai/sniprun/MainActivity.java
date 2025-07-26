@@ -9,6 +9,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
         executorService = Executors.newSingleThreadExecutor();
         javaExecutor = new JavaExecutor(this);
         
-        // Test our compilers
         testCompilers();
+        runQuickTest();
         
         loadSampleCode();
         startInitialAnimations();
@@ -171,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
                         outputConsole.setText(result.getOutput());
                         showSuccessAnimation();
                     } else {
-                        // Show detailed compilation errors
                         String errorOutput = result.getFormattedErrorMessage();
                         if (errorOutput == null || errorOutput.trim().isEmpty()) {
                             errorOutput = "Compilation failed: " + 
@@ -334,29 +334,43 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void testCompilers() {
-        android.util.Log.d("MainActivity", "Testing compilers on startup...");
-        
-        // Simple test code
         String testCode = "System.out.println(\"Test output: \" + (5 + 3));";
         
         executorService.execute(() -> {
             try {
-                android.util.Log.d("MainActivity", "Executing test code: " + testCode);
                 JavaExecutor.ExecutionResult result = javaExecutor.executeJavaCode(testCode);
                 
                 if (result.isSuccess()) {
-                    android.util.Log.d("MainActivity", "✓ Compiler test SUCCESS - Output: " + result.getOutput());
                 } else {
-                    android.util.Log.d("MainActivity", "✗ Compiler test FAILED - Error: " + result.getErrorMessage());
                     String formatted = result.getFormattedErrorMessage();
                     if (formatted != null && !formatted.trim().isEmpty()) {
-                        android.util.Log.d("MainActivity", "Formatted error: " + formatted);
                     }
                 }
-                android.util.Log.d("MainActivity", "Test execution time: " + result.getExecutionTimeMs() + "ms");
                 
             } catch (Exception e) {
-                android.util.Log.e("MainActivity", "Compiler test failed with exception", e);
+            }
+        });
+    }
+    
+    private void runQuickTest() {
+        executorService.execute(() -> {
+            try {
+                Log.d("MainActivity", "Running quick test of Java compilation");
+                
+                String testCode = "System.out.println(\"Quick test: \" + (2 + 3));";
+                JavaExecutor.ExecutionResult result = javaExecutor.executeJavaCode(testCode);
+                
+                if (result.isSuccess()) {
+                    Log.d("MainActivity", "✓ Quick test SUCCESS - Output: " + result.getOutput());
+                } else {
+                    Log.e("MainActivity", "✗ Quick test FAILED - Error: " + result.getErrorMessage());
+                    if (result.getFormattedErrorMessage() != null) {
+                        Log.e("MainActivity", "Formatted error: " + result.getFormattedErrorMessage());
+                    }
+                }
+                
+            } catch (Exception e) {
+                Log.e("MainActivity", "Quick test failed with exception", e);
             }
         });
     }

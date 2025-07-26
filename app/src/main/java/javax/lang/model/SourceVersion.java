@@ -28,7 +28,7 @@ public enum SourceVersion {
     RELEASE_21;
     
     public static SourceVersion latest() {
-        return RELEASE_11; // We'll target Java 11 for Android compatibility
+        return RELEASE_11;
     }
     
     public static SourceVersion latestSupported() {

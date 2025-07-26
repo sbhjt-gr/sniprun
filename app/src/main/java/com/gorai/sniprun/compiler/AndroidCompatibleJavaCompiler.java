@@ -1,7 +1,6 @@
 package com.gorai.sniprun.compiler;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.io.*;
 import java.util.*;
@@ -59,7 +58,6 @@ public class AndroidCompatibleJavaCompiler {
             
             cleanupDirectories();
         } catch (Exception e) {
-            Log.e(TAG, "Failed to initialize directories", e);
         }
     }
     
@@ -68,7 +66,6 @@ public class AndroidCompatibleJavaCompiler {
             deleteDirectoryContents(classDirectory);
             deleteDirectoryContents(tempDirectory);
         } catch (Exception e) {
-            Log.e(TAG, "Failed to cleanup directories", e);
         }
     }
     
@@ -100,7 +97,6 @@ public class AndroidCompatibleJavaCompiler {
                 sourceCode = wrapInClass(sourceCode, className);
             }
             
-            // Validate basic syntax first
             List<String> syntaxErrors = validateSyntax(sourceCode);
             if (!syntaxErrors.isEmpty()) {
                 return new CompilationResult(false, "", "Syntax validation failed", 
@@ -113,7 +109,6 @@ public class AndroidCompatibleJavaCompiler {
                                        System.currentTimeMillis() - startTime);
             
         } catch (Exception e) {
-            Log.e(TAG, "Execution error", e);
             return new CompilationResult(false, "", "Internal error: " + e.getMessage(), 
                                        null, System.currentTimeMillis() - startTime);
         } finally {
@@ -128,7 +123,6 @@ public class AndroidCompatibleJavaCompiler {
     }
     
     private String wrapInClass(String code, String className) {
-        // Check if it's a complete main method or just statements
         if (code.contains("public static void main")) {
             return "public class " + className + " {\n" + code + "\n}";
         } else {
@@ -143,7 +137,6 @@ public class AndroidCompatibleJavaCompiler {
     private List<String> validateSyntax(String sourceCode) {
         List<String> errors = new ArrayList<>();
         
-        // Basic syntax validation
         int openBraces = 0;
         int closeBraces = 0;
         int openParens = 0;
@@ -222,7 +215,6 @@ public class AndroidCompatibleJavaCompiler {
         try {
             cleanupDirectories();
         } catch (Exception e) {
-            Log.e(TAG, "Cleanup failed", e);
         }
     }
     
@@ -267,7 +259,7 @@ public class AndroidCompatibleJavaCompiler {
             
             for (String line : lines) {
                 line = line.trim();
-                if (!line.isEmpty() && !line.startsWith("import") && !line.startsWith("//")) {
+                if (!line.isEmpty() && !line.startsWith("import")) {
                     executeStatement(line);
                 }
             }
@@ -297,7 +289,6 @@ public class AndroidCompatibleJavaCompiler {
         }
         
         private void executePrintStatement(String statement) {
-            // Custom parsing for print statements to handle nested parentheses
             String printPrefix = "System.out.print";
             int startIndex = statement.indexOf(printPrefix);
             if (startIndex != -1) {
@@ -305,9 +296,7 @@ public class AndroidCompatibleJavaCompiler {
                 if (openParenIndex != -1) {
                     String expression = extractBalancedParentheses(statement, openParenIndex);
                     if (expression != null) {
-                        android.util.Log.d("AndroidInterpreter", "Print expression: " + expression);
                         Object value = evaluateExpression(expression);
-                        android.util.Log.d("AndroidInterpreter", "Evaluated value: " + value);
                         output.append(value).append("\n");
                     }
                 }
@@ -318,14 +307,13 @@ public class AndroidCompatibleJavaCompiler {
             int parenCount = 0;
             int i = startIndex;
             
-            // Find the opening parenthesis
             while (i < text.length() && text.charAt(i) != '(') {
                 i++;
             }
             
             if (i >= text.length()) return null;
             
-            i++; // Move past the opening parenthesis
+            i++;
             int contentStart = i;
             parenCount = 1;
             
@@ -340,7 +328,7 @@ public class AndroidCompatibleJavaCompiler {
             }
             
             if (parenCount == 0) {
-                return text.substring(contentStart, i - 1); // -1 to exclude the closing parenthesis
+                return text.substring(contentStart, i - 1);
             }
             
             return null;
@@ -397,14 +385,12 @@ public class AndroidCompatibleJavaCompiler {
                             }
                         }
                     } catch (Exception e) {
-                        // Ignore method call errors
                     }
                 }
             }
         }
         
         private void handleForLoop(String statement) {
-            // Simple for loop handling
             Pattern forPattern = Pattern.compile("for\\s*\\(\\s*(\\w+)\\s+(\\w+)\\s*=\\s*(\\d+);\\s*(\\w+)\\s*<=\\s*(\\d+);\\s*(\\w+)\\+\\+\\s*\\)");
             Matcher matcher = forPattern.matcher(statement);
             
@@ -415,20 +401,16 @@ public class AndroidCompatibleJavaCompiler {
                 
                 for (int i = start; i <= end; i++) {
                     variables.put(varName, i);
-                    // For simplicity, we just store the final values
                 }
             }
         }
         
         private void handleIfStatement(String statement) {
-            // Basic if statement handling - simplified
             Pattern ifPattern = Pattern.compile("if\\s*\\(([^)]+)\\)");
             Matcher matcher = ifPattern.matcher(statement);
             
             if (matcher.find()) {
                 String condition = matcher.group(1);
-                // For simplicity, assume conditions are true
-                // In a real implementation, you'd evaluate the condition
             }
         }
         
@@ -472,27 +454,22 @@ public class AndroidCompatibleJavaCompiler {
         private Object evaluateExpression(String expression) {
             expression = expression.trim();
             
-            // String literals
             if (expression.startsWith("\"") && expression.endsWith("\"")) {
                 return expression.substring(1, expression.length() - 1);
             }
             
-            // Integer literals
             if (expression.matches("\\d+")) {
                 return Integer.parseInt(expression);
             }
             
-            // Double literals
             if (expression.matches("\\d+\\.\\d+")) {
                 return Double.parseDouble(expression);
             }
             
-            // Boolean literals
             if (expression.equals("true") || expression.equals("false")) {
                 return Boolean.parseBoolean(expression);
             }
             
-            // Object creation
             if (expression.startsWith("new ArrayList<>()")) {
                 return new ArrayList<>();
             }
@@ -501,17 +478,14 @@ public class AndroidCompatibleJavaCompiler {
                 return new HashMap<>();
             }
             
-            // Variable references
             if (variables.containsKey(expression)) {
                 return variables.get(expression);
             }
             
-            // Complex expressions with parentheses - evaluate them first
             if (expression.contains("(") && expression.contains(")")) {
                 return evaluateComplexExpression(expression);
             }
             
-            // Arithmetic operations
             if (expression.contains("+")) {
                 return evaluateAddition(expression);
             }
@@ -528,7 +502,6 @@ public class AndroidCompatibleJavaCompiler {
                 return evaluateDivision(expression);
             }
             
-            // Method calls
             if (expression.contains(".")) {
                 return evaluateMethodCall(expression);
             }
@@ -537,7 +510,6 @@ public class AndroidCompatibleJavaCompiler {
         }
         
         private Object evaluateComplexExpression(String expression) {
-            // Handle simple parentheses like "Test output: " + (5 + 3)
             Pattern parenthesesPattern = Pattern.compile("(.*)\\(([^()]+)\\)(.*)");
             Matcher matcher = parenthesesPattern.matcher(expression);
             
@@ -546,10 +518,8 @@ public class AndroidCompatibleJavaCompiler {
                 String inside = matcher.group(2);
                 String after = matcher.group(3);
                 
-                // Evaluate the expression inside parentheses
                 Object innerResult = evaluateExpression(inside);
                 
-                // Reconstruct the expression with the evaluated result
                 String newExpression = before + innerResult + after;
                 return evaluateExpression(newExpression);
             }
@@ -558,7 +528,6 @@ public class AndroidCompatibleJavaCompiler {
         }
         
         private Object evaluateAddition(String expression) {
-            // Find the last + that's not inside parentheses or quotes
             int lastPlusIndex = findLastTopLevelPlus(expression);
             
             if (lastPlusIndex != -1) {
