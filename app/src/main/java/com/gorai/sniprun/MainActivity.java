@@ -39,7 +39,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements FileExplorerFragment.OnFileSelectedListener {
     
-    private EditText codeEditor;
+    private CodeEditor codeEditor;
     private TextView outputConsole;
     private TabLayout tabLayout;
     private FloatingActionButton runButton;
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_enhanced_main);
         
         initializeViews();
         initializeLottieAnimations();
@@ -149,10 +149,9 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         errorHighlightManager = new ErrorHighlightManager(codeEditor);
         codeFoldingManager = new CodeFoldingManager(codeEditor);
         
-        // TODO: Fix LineNumberView to work with EditText instead of CodeEditor
-        // if (lineNumberView != null) {
-        //     lineNumberView.attachToCodeEditor(codeEditor);
-        // }
+        if (lineNumberView != null) {
+            lineNumberView.attachToCodeEditor(codeEditor);
+        }
         
         codeEditor.addTextChangedListener(new android.text.TextWatcher() {
             @Override
@@ -358,15 +357,20 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     }
     
     private void runCodeWithAnimation() {
-        String code = codeEditor.getText().toString();
-        if (code.trim().isEmpty()) {
-            showError("Please enter some Java code to run");
+        runCode();
+    }
+    
+    private void runCode() {
+        String code = codeEditor.getText().toString().trim();
+        
+        if (code.isEmpty()) {
+            Toast.makeText(this, "Please enter some code to run", Toast.LENGTH_SHORT).show();
             return;
         }
         
         showLoadingAnimation();
         
-        outputConsole.setText("Compiling Java code with Eclipse JDT Compiler...\nUsing professional-grade compilation engine.\n");
+        outputConsole.setText("Running code...\n");
         runButton.setEnabled(false);
         
         if (editorStatusAnimation != null) {
@@ -381,19 +385,14 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
             try {
                 JavaExecutor.ExecutionResult result = javaExecutor.executeJavaCode(code);
                 
-                new Handler(Looper.getMainLooper()).post(() -> {
+                runOnUiThread(() -> {
                     hideLoadingAnimation();
                     
                     if (result.isSuccess()) {
                         outputConsole.setText(result.getOutput());
                         showSuccessAnimation();
                     } else {
-                        String errorOutput = result.getFormattedErrorMessage();
-                        if (errorOutput == null || errorOutput.trim().isEmpty()) {
-                            errorOutput = "Compilation failed: " + 
-                                (result.getErrorMessage() != null ? result.getErrorMessage() : "Unknown error");
-                        }
-                        outputConsole.setText(errorOutput);
+                        outputConsole.setText("Error: " + result.getErrorMessage());
                         showErrorAnimation();
                     }
                     
@@ -408,17 +407,16 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
                 });
                 
             } catch (Exception e) {
-                new Handler(Looper.getMainLooper()).post(() -> {
+                runOnUiThread(() -> {
                     hideLoadingAnimation();
-                    outputConsole.setText("✗ System Error: " + e.getMessage() + 
-                        "\n\nThis might be due to a configuration issue. Please try again.");
+                    outputConsole.setText("Error: " + e.getMessage());
                     runButton.setEnabled(true);
                     showErrorAnimation();
                     
                     if (editorStatusAnimation != null) {
                         try {
                             editorStatusAnimation.cancelAnimation();
-                        } catch (Exception e2) {
+                        } catch (Exception ex) {
                         }
                     }
                 });
@@ -427,41 +425,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     }
     
     private void newFileWithAnimation() {
-        if (newFilePulse != null) {
-            try {
-                newFilePulse.cancelAnimation();
-            } catch (Exception e) {
-            }
-        }
-        
-        newFileButton.animate()
-            .scaleX(0.8f)
-            .scaleY(0.8f)
-            .setDuration(100)
-            .setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    codeEditor.setText("");
-                    outputConsole.setText("Ready for new code...");
-                    
-                    newFileButton.animate()
-                        .scaleX(1.0f)
-                        .scaleY(1.0f)
-                        .setDuration(100)
-                        .setListener(null)
-                        .start();
-                    
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        if (newFilePulse != null) {
-                            try {
-                                newFilePulse.playAnimation();
-                            } catch (Exception e) {
-                            }
-                        }
-                    }, 1000);
-                }
-            })
-            .start();
+        createNewFile();
     }
     
     private void showLoadingAnimation() {
@@ -682,11 +646,6 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     }
     
     private void toggleFileExplorer() {
-        // Fragment container doesn't exist in current layout, skip file explorer functionality
-        if (findViewById(R.id.fragment_container) == null) {
-            return;
-        }
-        
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment existingFragment = fragmentManager.findFragmentById(R.id.fragment_container);
         
@@ -752,7 +711,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        getMenuInflater().inflate(R.menu.enhanced_main_menu, menu);
         return true;
     }
     
@@ -847,11 +806,6 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         builder.show();
     }
     
-    private void openSettings() {
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivityForResult(intent, 1001);
-    }
-    
     private void showCodeTemplatesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose Code Template");
@@ -877,29 +831,30 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     }
     
     private void showAboutDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("About SnipRun IDE");
-        builder.setMessage("SnipRun IDE v4.0\n\nModern Android Java Interpreter\n\nFeatures:\n• Beautiful Lottie animations\n• Modern Material Design 3\n• Android-compatible Java interpretation\n• Real-time code parsing and execution\n• JavaParser-based syntax validation\n• Enhanced user experience\n• Educational Java environment\n• Copy output to clipboard\n• File management with tabs\n• Syntax highlighting\n• Code folding\n• Undo/Redo support\n• Recent files\n• Code templates\n\nPowered by:\n• Lottie Android 6.6.7\n• JavaParser 3.25.5\n• Material Design 3\n\nDesigned for modern coding experience");
-        builder.setPositiveButton("OK", null);
-        builder.setNeutralButton("GitHub", (dialog, which) -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/yourrepo/sniprun"));
-            startActivity(intent);
-        });
-        builder.show();
+        new AlertDialog.Builder(this)
+            .setTitle("About SnipRun IDE")
+            .setMessage("Professional Java IDE for Android\n\n" +
+                       "Features:\n" +
+                       "• Java code editing and execution\n" +
+                       "• Syntax highlighting\n" +
+                       "• Error detection\n" +
+                       "• Code folding\n" +
+                       "• Line numbers\n" +
+                       "• Advanced search & replace\n" +
+                       "• Undo/Redo support\n\n" +
+                       "Version 1.0")
+            .setPositiveButton("OK", null)
+            .show();
     }
     
-    private void showFindReplaceDialog() {
-        // TODO: Update FindReplaceDialog to work with EditText instead of CodeEditor
-        // FindReplaceDialog dialog = new FindReplaceDialog(this, codeEditor);
-        // dialog.show();
-        Toast.makeText(this, "Find/Replace temporarily disabled", Toast.LENGTH_SHORT).show();
+    private void openSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(intent, 1001);
     }
     
     private void showAdvancedSearchReplaceDialog() {
-        // TODO: Update AdvancedSearchReplaceDialog to work with EditText instead of CodeEditor
-        // AdvancedSearchReplaceDialog dialog = new AdvancedSearchReplaceDialog(this, codeEditor);
-        // dialog.show();
-        Toast.makeText(this, "Advanced Search/Replace temporarily disabled", Toast.LENGTH_SHORT).show();
+        AdvancedSearchReplaceDialog dialog = new AdvancedSearchReplaceDialog(this, codeEditor);
+        dialog.show();
     }
     
     private void showRecentFilesDialog() {
@@ -919,7 +874,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         builder.setTitle("Recent Files");
         builder.setItems(fileNames, (dialog, which) -> {
             RecentFilesManager.RecentFileInfo fileInfo = recentFiles.get(which);
-            openRecentFile(fileInfo.getFilePath());
+            openFile(fileInfo.getFilePath());
         });
         
         builder.setNegativeButton("Clear Recent", (dialog, which) -> {
@@ -930,7 +885,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         builder.show();
     }
     
-    private void openRecentFile(String filePath) {
+    private void openFile(String filePath) {
         try {
             String content = fileManager.readFile(filePath);
             codeEditor.setText(content);
@@ -943,6 +898,10 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         } catch (IOException e) {
             Toast.makeText(this, "Error opening file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+    
+    private void openRecentFile(String filePath) {
+        openFile(filePath);
     }
     
     private void setupOnBackPressed() {

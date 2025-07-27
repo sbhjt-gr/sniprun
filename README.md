@@ -14,7 +14,7 @@ SnipRun IDE v3.0 represents a complete architectural overhaul, implementing a pr
 - **Enhanced**: Professional error reporting with compilation metrics
 - **Improved**: 5x faster execution through native bytecode processing
 
-### Advanced Security Model
+### Advanced Security ModelØ
 - **Modernized**: Security validation replacing deprecated SecurityManager
 - **Enhanced**: Pre-compilation security checks for dangerous operations
 - **Added**: Controlled execution environment with timeout protection
