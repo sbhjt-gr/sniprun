@@ -23,9 +23,6 @@ public class PermissionHelper {
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     
-    /**
-     * Check if storage permissions are granted
-     */
     public static boolean hasStoragePermissions(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return Environment.isExternalStorageManager();
@@ -39,10 +36,7 @@ public class PermissionHelper {
         }
         return true;
     }
-    
-    /**
-     * Request storage permissions with explanation dialog
-     */
+
     public static void requestStoragePermissions(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             showPermissionExplanationDialog(activity, () -> {
@@ -60,10 +54,7 @@ public class PermissionHelper {
             });
         }
     }
-    
-    /**
-     * Show explanation dialog before requesting permissions
-     */
+
     private static void showPermissionExplanationDialog(Activity activity, Runnable onAccept) {
         new AlertDialog.Builder(activity)
             .setTitle("Storage Permission Required")
@@ -84,10 +75,7 @@ public class PermissionHelper {
             .setCancelable(false)
             .show();
     }
-    
-    /**
-     * Check if permission request result is granted
-     */
+
     public static boolean isPermissionGranted(int[] grantResults) {
         for (int result : grantResults) {
             if (result != PackageManager.PERMISSION_GRANTED) {
@@ -96,10 +84,7 @@ public class PermissionHelper {
         }
         return grantResults.length > 0;
     }
-    
-    /**
-     * Handle activity result for Android 11+ permission
-     */
+
     public static boolean handleActivityResult(int requestCode) {
         if (requestCode == MANAGE_EXTERNAL_STORAGE_REQUEST_CODE) {
             return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager();

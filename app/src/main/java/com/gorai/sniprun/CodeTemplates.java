@@ -5,9 +5,9 @@ public class CodeTemplates {
     private static final String[] TEMPLATE_NAMES = {
         "Hello World",
         "Basic Math",
-        "Collections Demo",
+        "Simple Variables",
         "For Loop Example",
-        "String Operations"
+        "If-Else Example"
     };
     
     private static final String[] TEMPLATES = {
@@ -31,19 +31,14 @@ public class CodeTemplates {
         "    }\n" +
         "}",
         
-        "import java.util.*;\n" +
-        "\n" +
-        "public class CollectionsDemo {\n" +
+        "public class SimpleVariables {\n" +
         "    public static void main(String[] args) {\n" +
-        "        List<String> fruits = new ArrayList<>();\n" +
-        "        fruits.add(\"Apple\");\n" +
-        "        fruits.add(\"Banana\");\n" +
-        "        fruits.add(\"Cherry\");\n" +
+        "        int number = 42;\n" +
+        "        String text = \"Hello\";\n" +
         "        \n" +
-        "        System.out.println(\"Fruits:\");\n" +
-        "        for (String fruit : fruits) {\n" +
-        "            System.out.println(\"- \" + fruit);\n" +
-        "        }\n" +
+        "        System.out.println(\"Number: \" + number);\n" +
+        "        System.out.println(\"Text: \" + text);\n" +
+        "        System.out.println(\"Sum: \" + (number + 8));\n" +
         "    }\n" +
         "}",
         
@@ -62,16 +57,21 @@ public class CodeTemplates {
         "    }\n" +
         "}",
         
-        "public class StringOperations {\n" +
+        "public class IfElseExample {\n" +
         "    public static void main(String[] args) {\n" +
-        "        String text = \"Hello, Java!\";\n" +
-        "        System.out.println(\"Original: \" + text);\n" +
-        "        System.out.println(\"Uppercase: \" + text.toUpperCase());\n" +
-        "        System.out.println(\"Length: \" + text.length());\n" +
+        "        int number = 15;\n" +
         "        \n" +
-        "        String name = \"Android\";\n" +
-        "        String greeting = \"Welcome to \" + name + \" programming!\";\n" +
-        "        System.out.println(greeting);\n" +
+        "        if (number > 10) {\n" +
+        "            System.out.println(number + \" is greater than 10\");\n" +
+        "        } else {\n" +
+        "            System.out.println(number + \" is not greater than 10\");\n" +
+        "        }\n" +
+        "        \n" +
+        "        if (number % 2 == 0) {\n" +
+        "            System.out.println(number + \" is even\");\n" +
+        "        } else {\n" +
+        "            System.out.println(number + \" is odd\");\n" +
+        "        }\n" +
         "    }\n" +
         "}"
     };

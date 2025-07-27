@@ -73,35 +73,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     private static final int OPEN_FILE_REQUEST_CODE = 1003;
     private String pendingCodeToSave = null;
     
-    private static final String SAMPLE_CODE = 
-        "import java.util.*;\n\n" +
-        "public class HelloWorld {\n" +
-        "    public static void main(String[] args) {\n" +
-        "        System.out.println(\"Hello, SnipRun IDE!\");\n" +
-        "        \n" +
-        "        int sum = 0;\n" +
-        "        for (int i = 1; i <= 10; i++) {\n" +
-        "            sum += i;\n" +
-        "        }\n" +
-        "        System.out.println(\"Sum of 1-10: \" + sum);\n" +
-        "        \n" +
-        "        List<String> languages = new ArrayList<>();\n" +
-        "        languages.add(\"Java\");\n" +
-        "        languages.add(\"Kotlin\");\n" +
-        "        languages.add(\"Python\");\n" +
-        "        \n" +
-        "        System.out.println(\"Programming languages:\");\n" +
-        "        for (String lang : languages) {\n" +
-        "            System.out.println(\"- \" + lang);\n" +
-        "        }\n" +
-        "        \n" +
-        "        String message = \"Java on Android!\";\n" +
-        "        System.out.println(\"Uppercase: \" + message.toUpperCase());\n" +
-        "        System.out.println(\"Length: \" + message.length());\n" +
-        "        \n" +
-        "        System.out.println(\"Current time: \" + new java.util.Date());\n" +
-        "    }\n" +
-        "}";
+
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -356,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     
     private void loadSampleCode() {
         if (codeEditor != null) {
-            codeEditor.setText(SAMPLE_CODE);
+            codeEditor.setText(""); // Start with empty editor
         }
     }
     
