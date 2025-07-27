@@ -45,10 +45,17 @@ public class FileManager {
     }
     
     private void initializeFileSystem() {
-        File appDirectory = new File(context.getFilesDir(), "SnipRunProjects");
+        File externalStorageDir = Environment.getExternalStorageDirectory();
+        File appDirectory = new File(externalStorageDir, "SnipRun");
+
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            appDirectory = new File(context.getExternalFilesDir(null), "SnipRunProjects");
+        }
+        
         if (!appDirectory.exists()) {
             appDirectory.mkdirs();
         }
+        
         this.projectRoot = appDirectory;
         this.currentDirectory = appDirectory;
         
@@ -247,5 +254,61 @@ public class FileManager {
     
     public void addToRecentFiles(String filePath) {
         
+    }
+    
+    /**
+     * Get the storage location information for user display
+     */
+    public String getStorageInfo() {
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            return "External Storage: " + projectRoot.getAbsolutePath();
+        } else {
+            return "App External Storage: " + projectRoot.getAbsolutePath();
+        }
+    }
+    
+    /**
+     * Check if external storage is available
+     */
+    public boolean isExternalStorageAvailable() {
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+    }
+    
+    /**
+     * Set custom project root location
+     */
+    public void setProjectRoot(String path) {
+        File newRoot = new File(path);
+        if (!newRoot.exists()) {
+            newRoot.mkdirs();
+        }
+        this.projectRoot = newRoot;
+        this.currentDirectory = newRoot;
+        createDefaultProject();
+    }
+    
+    /**
+     * Save file to specific location with location chooser
+     */
+    public void saveFileWithLocationChooser(String fileName, String content, 
+                                          FileLocationChooser.OnLocationSelectedListener callback) {
+    }
+    
+    /**
+     * Get available storage locations for display
+     */
+    public List<String> getAvailableStorageLocations() {
+        List<String> locations = new ArrayList<>();
+        
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            locations.add("Device Storage: " + Environment.getExternalStorageDirectory() + "/SnipRun");
+            locations.add("Documents: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + "/SnipRun");
+            locations.add("Downloads: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/SnipRun");
+        }
+        
+        locations.add("App External: " + context.getExternalFilesDir(null) + "/SnipRunProjects");
+        locations.add("App Internal: " + context.getFilesDir() + "/SnipRunProjects");
+        
+        return locations;
     }
 }

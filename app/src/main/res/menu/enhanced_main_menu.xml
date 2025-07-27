@@ -21,15 +21,12 @@
         app:showAsAction="ifRoom" />
 
     <group android:id="@+id/file_menu_group">
-        <item
-            android:id="@+id/action_save_as"
-            android:title="Save As..."
-            android:icon="@drawable/ic_save_as" />
 
         <item
             android:id="@+id/action_open"
             android:title="Open File"
             android:icon="@drawable/ic_folder_open" />
+
     </group>
 
     <group android:id="@+id/edit_menu_group">

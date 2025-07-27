@@ -36,6 +36,7 @@ public class SettingsActivity extends AppCompatActivity {
         initializeViews();
         loadCurrentSettings();
         setupListeners();
+        setupOnBackPressed();
     }
     
     private void setupToolbar() {
@@ -172,11 +173,16 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     
-    @Override
-    public void onBackPressed() {
-        Intent intent = new Intent();
-        intent.putExtra("settings_changed", true);
-        setResult(RESULT_OK, intent);
-        super.onBackPressed();
+    private void setupOnBackPressed() {
+        androidx.activity.OnBackPressedCallback callback = new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intent = new Intent();
+                intent.putExtra("settings_changed", true);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 }

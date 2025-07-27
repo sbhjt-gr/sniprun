@@ -69,6 +69,10 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     private String currentFileName = "Untitled.java";
     private String currentFilePath = null;
     
+    private static final int CREATE_FILE_REQUEST_CODE = 1002;
+    private static final int OPEN_FILE_REQUEST_CODE = 1003;
+    private String pendingCodeToSave = null;
+    
     private static final String SAMPLE_CODE = 
         "import java.util.*;\n\n" +
         "public class HelloWorld {\n" +
@@ -646,6 +650,11 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     }
     
     private void toggleFileExplorer() {
+        if (findViewById(R.id.fragment_container) == null) {
+            Toast.makeText(this, "File explorer not available in this layout", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment existingFragment = fragmentManager.findFragmentById(R.id.fragment_container);
         
@@ -723,7 +732,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
             saveCurrentFile();
             return true;
         } else if (id == R.id.action_open) {
-            toggleFileExplorer();
+            openFileWithSystemManager();
             return true;
         } else if (id == R.id.action_settings) {
             openSettings();
@@ -764,11 +773,21 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         String code = codeEditor.getText().toString();
         
         if (currentFilePath != null) {
-            try {
-                fileManager.saveFile(currentFilePath, code);
-                Toast.makeText(this, "File saved: " + currentFileName, Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            if (currentFilePath.startsWith("content://")) {
+                Uri uri = Uri.parse(currentFilePath);
+                saveToUri(uri, code);
+            } else {
+                if (!PermissionHelper.hasStoragePermissions(this)) {
+                    PermissionHelper.requestStoragePermissions(this);
+                    return;
+                }
+                
+                try {
+                    fileManager.saveFile(currentFilePath, code);
+                    Toast.makeText(this, "File saved: " + currentFileName, Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
         } else {
             saveAsNewFile(code);
@@ -776,35 +795,27 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     }
     
     private void saveAsNewFile(String code) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Save As");
+        pendingCodeToSave = code;
+
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+
+        String defaultFileName = currentFileName;
+        if (!defaultFileName.endsWith(".java")) {
+            defaultFileName += ".java";
+        }
+        intent.putExtra(Intent.EXTRA_TITLE, defaultFileName);
         
-        final EditText input = new EditText(this);
-        input.setText(currentFileName);
-        builder.setView(input);
-        
-        builder.setPositiveButton("Save", (dialog, which) -> {
-            String fileName = input.getText().toString().trim();
-            if (!fileName.isEmpty()) {
-                if (!fileName.endsWith(".java")) {
-                    fileName += ".java";
-                }
-                
-                try {
-                    String filePath = fileManager.getProjectRoot() + "/" + fileName;
-                    fileManager.saveFile(filePath, code);
-                    currentFileName = fileName;
-                    currentFilePath = filePath;
-                    Toast.makeText(this, "File saved: " + fileName, Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-        
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+        try {
+            startActivityForResult(intent, CREATE_FILE_REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(this, "File manager not available. Using fallback method.", Toast.LENGTH_SHORT).show();
+            saveToInternalStorage(code, defaultFileName);
+        }
     }
+    
+
     
     private void showCodeTemplatesDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -933,6 +944,152 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
                 applySettings();
             }
         }
+
+        if (requestCode == CREATE_FILE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null && pendingCodeToSave != null) {
+                saveToUri(uri, pendingCodeToSave);
+                pendingCodeToSave = null;
+            }
+        }
+
+        if (requestCode == OPEN_FILE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                openFileFromUri(uri);
+            }
+        }
+
+        if (requestCode == PermissionHelper.MANAGE_EXTERNAL_STORAGE_REQUEST_CODE) {
+            if (PermissionHelper.handleActivityResult(requestCode)) {
+                Toast.makeText(this, "Full storage access granted! You can now save files anywhere on external storage.", Toast.LENGTH_LONG).show();
+                fileManager = new FileManager(this);
+            } else {
+                new AlertDialog.Builder(this)
+                    .setTitle("Limited Storage Access")
+                    .setMessage("Without full storage access, files will be saved to app-specific directories. " +
+                               "You can grant full access later in Settings.")
+                    .setPositiveButton("OK", null)
+                    .show();
+            }
+        }
+    }
+    
+    private void saveToUri(Uri uri, String content) {
+        try {
+            getContentResolver().takePersistableUriPermission(uri, 
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        } catch (SecurityException e) {
+        }
+        
+        try (java.io.OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
+            if (outputStream != null) {
+                outputStream.write(content.getBytes());
+                outputStream.flush();
+
+                String fileName = getFileNameFromUri(uri);
+                currentFileName = fileName;
+                currentFilePath = uri.toString();
+                
+                Toast.makeText(this, "File saved successfully: " + fileName, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    private void saveToInternalStorage(String content, String fileName) {
+        try {
+            String filePath = fileManager.getProjectRoot() + "/" + fileName;
+            fileManager.saveFile(filePath, content);
+            currentFileName = fileName;
+            currentFilePath = filePath;
+            Toast.makeText(this, "File saved to internal storage: " + fileName, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = currentFileName;
+        try {
+            android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                if (nameIndex >= 0) {
+                    fileName = cursor.getString(nameIndex);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+        }
+        return fileName != null ? fileName : currentFileName;
+    }
+    
+    private void openFileWithSystemManager() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        
+        try {
+            startActivityForResult(intent, OPEN_FILE_REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(this, "File manager not available. Using file explorer instead.", Toast.LENGTH_SHORT).show();
+            toggleFileExplorer();
+        }
+    }
+    
+    private void openFileFromUri(Uri uri) {
+        try {
+            try {
+                getContentResolver().takePersistableUriPermission(uri, 
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (SecurityException e) {
+            }
+
+            java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream != null) {
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream));
+                StringBuilder content = new StringBuilder();
+                String line;
+                
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                
+                reader.close();
+                inputStream.close();
+
+                codeEditor.setText(content.toString());
+                String fileName = getFileNameFromUri(uri);
+                currentFileName = fileName;
+                currentFilePath = uri.toString();
+
+                recentFilesManager.addRecentFile(uri.toString());
+
+                if (tabLayout != null) {
+                    boolean tabExists = false;
+                    for (int i = 0; i < tabLayout.getTabCount(); i++) {
+                        TabLayout.Tab tab = tabLayout.getTabAt(i);
+                        if (tab != null && tab.getText() != null && tab.getText().toString().equals(fileName)) {
+                            tabLayout.selectTab(tab);
+                            tabExists = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!tabExists) {
+                        TabLayout.Tab newTab = tabLayout.newTab().setText(fileName);
+                        tabLayout.addTab(newTab);
+                        tabLayout.selectTab(newTab);
+                    }
+                }
+                
+                Toast.makeText(this, "File opened: " + fileName, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error opening file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
     
     private void applySettings() {
@@ -1019,4 +1176,30 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
             executorService.shutdown();
         }
     }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        if (requestCode == PermissionHelper.STORAGE_PERMISSION_REQUEST_CODE) {
+            if (PermissionHelper.isPermissionGranted(grantResults)) {
+                Toast.makeText(this, "Storage permissions granted! You can now save files to external storage.", Toast.LENGTH_LONG).show();
+                fileManager = new FileManager(this);
+            } else {
+                new AlertDialog.Builder(this)
+                    .setTitle("Permission Denied")
+                    .setMessage("Storage permission is required to save files to external storage. " +
+                               "Files will be saved to app-specific storage instead.\n\n" +
+                               "You can grant permission later in Settings > Apps > SnipRun > Permissions")
+                    .setPositiveButton("OK", null)
+                    .setNeutralButton("Settings", (dialog, which) -> {
+                        Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivity(intent);
+                    })
+                    .show();
+            }
+        }
+    }
+    
 }
