@@ -9,79 +9,42 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_find_replace"
-        android:title="Find &amp; Replace"
+        android:id="@+id/action_open"
+        android:title="Open File"
+        android:icon="@drawable/ic_folder_open"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_find"
+        android:title="Find"
         android:icon="@drawable/ic_search"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_format_code"
-        android:title="Format Code"
-        android:icon="@drawable/ic_format"
+        android:id="@+id/action_undo"
+        android:title="Undo"
+        android:icon="@drawable/ic_undo"
         app:showAsAction="ifRoom" />
 
-    <group android:id="@+id/file_menu_group">
+    <item
+        android:id="@+id/action_redo"
+        android:title="Redo"
+        android:icon="@drawable/ic_redo"
+        app:showAsAction="ifRoom" />
 
-        <item
-            android:id="@+id/action_open"
-            android:title="Open File"
-            android:icon="@drawable/ic_folder_open" />
+    <item
+        android:id="@+id/action_templates"
+        android:title="Code Templates"
+        android:icon="@drawable/ic_template" />
 
-    </group>
+    <item
+        android:id="@+id/action_clear_console"
+        android:title="Clear Console"
+        android:icon="@drawable/ic_clear" />
 
-    <group android:id="@+id/edit_menu_group">
-        <item
-            android:id="@+id/action_undo"
-            android:title="Undo"
-            android:icon="@drawable/ic_undo"
-            app:showAsAction="ifRoom" />
-
-        <item
-            android:id="@+id/action_redo"
-            android:title="Redo"
-            android:icon="@drawable/ic_redo"
-            app:showAsAction="ifRoom" />
-            
-        <item
-            android:id="@+id/action_recent_files"
-            android:title="Recent Files"
-            android:icon="@drawable/ic_history" />
-    </group>
-
-    <group android:id="@+id/view_menu_group">
-        <item
-            android:id="@+id/action_fold_all"
-            android:title="Fold All"
-            android:icon="@drawable/ic_fold" />
-
-        <item
-            android:id="@+id/action_unfold_all"
-            android:title="Unfold All"
-            android:icon="@drawable/ic_unfold" />
-    </group>
-
-    <group android:id="@+id/tools_menu_group">
-        <item
-            android:id="@+id/action_templates"
-            android:title="Code Templates"
-            android:icon="@drawable/ic_template" />
-
-        <item
-            android:id="@+id/action_clear_console"
-            android:title="Clear Console"
-            android:icon="@drawable/ic_clear" />
-    </group>
-
-    <group android:id="@+id/settings_menu_group">
-        <item
-            android:id="@+id/action_settings"
-            android:title="Settings"
-            android:icon="@drawable/ic_settings" />
-
-        <item
-            android:id="@+id/action_about"
-            android:title="About"
-            android:icon="@drawable/ic_info" />
-    </group>
+    <item
+        android:id="@+id/action_settings"
+        android:title="Settings"
+        android:icon="@drawable/ic_settings" />
 
 </menu>

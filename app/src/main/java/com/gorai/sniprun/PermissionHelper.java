@@ -22,7 +22,7 @@ public class PermissionHelper {
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    
+
     public static boolean hasStoragePermissions(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return Environment.isExternalStorageManager();

@@ -60,9 +60,9 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     private FileManager fileManager;
     private AppSettings appSettings;
     private UndoRedoManager undoRedoManager;
-    private RecentFilesManager recentFilesManager;
+
     private ErrorHighlightManager errorHighlightManager;
-    private CodeFoldingManager codeFoldingManager;
+
     private LineNumberView lineNumberView;
     
     private boolean isFileExplorerOpen = false;
@@ -121,9 +121,8 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     
     private void initializeEditorFeatures() {
         undoRedoManager = new UndoRedoManager(codeEditor);
-        recentFilesManager = new RecentFilesManager(this);
         errorHighlightManager = new ErrorHighlightManager(codeEditor);
-        codeFoldingManager = new CodeFoldingManager(codeEditor);
+
         
         if (lineNumberView != null) {
             lineNumberView.attachToCodeEditor(codeEditor);
@@ -140,8 +139,6 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
             public void afterTextChanged(android.text.Editable s) {
                 String code = s.toString();
                 errorHighlightManager.highlightErrors(code);
-                codeFoldingManager.analyzeFoldRegions(code);
-                codeFoldingManager.applyFolding();
             }
         });
     }
@@ -663,7 +660,7 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
             currentFileName = fileName;
             currentFilePath = filePath;
             
-            recentFilesManager.addRecentFile(filePath);
+
             
             if (tabLayout != null) {
                 boolean tabExists = false;
@@ -709,26 +706,14 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         } else if (id == R.id.action_settings) {
             openSettings();
             return true;
-        } else if (id == R.id.action_about) {
-            showAboutDialog();
-            return true;
-        } else if (id == R.id.action_find_replace) {
-            showAdvancedSearchReplaceDialog();
+        } else if (id == R.id.action_find) {
+            showBasicFindDialog();
             return true;
         } else if (id == R.id.action_undo) {
             undoRedoManager.undo();
             return true;
         } else if (id == R.id.action_redo) {
             undoRedoManager.redo();
-            return true;
-        } else if (id == R.id.action_fold_all) {
-            codeFoldingManager.foldAll();
-            return true;
-        } else if (id == R.id.action_unfold_all) {
-            codeFoldingManager.unfoldAll();
-            return true;
-        } else if (id == R.id.action_recent_files) {
-            showRecentFilesDialog();
             return true;
         } else if (id == R.id.action_templates) {
             showCodeTemplatesDialog();
@@ -813,60 +798,46 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         builder.show();
     }
     
-    private void showAboutDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle("About SnipRun IDE")
-            .setMessage("Professional Java IDE for Android\n\n" +
-                       "Features:\n" +
-                       "• Java code editing and execution\n" +
-                       "• Syntax highlighting\n" +
-                       "• Error detection\n" +
-                       "• Code folding\n" +
-                       "• Line numbers\n" +
-                       "• Advanced search & replace\n" +
-                       "• Undo/Redo support\n\n" +
-                       "Version 1.0")
-            .setPositiveButton("OK", null)
-            .show();
-    }
+
     
     private void openSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivityForResult(intent, 1001);
     }
     
-    private void showAdvancedSearchReplaceDialog() {
-        AdvancedSearchReplaceDialog dialog = new AdvancedSearchReplaceDialog(this, codeEditor);
-        dialog.show();
-    }
-    
-    private void showRecentFilesDialog() {
-        List<RecentFilesManager.RecentFileInfo> recentFiles = recentFilesManager.getRecentFileInfos();
-        
-        if (recentFiles.isEmpty()) {
-            Toast.makeText(this, "No recent files", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        String[] fileNames = new String[recentFiles.size()];
-        for (int i = 0; i < recentFiles.size(); i++) {
-            fileNames[i] = recentFiles.get(i).getDisplayName();
-        }
-        
+    private void showBasicFindDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Recent Files");
-        builder.setItems(fileNames, (dialog, which) -> {
-            RecentFilesManager.RecentFileInfo fileInfo = recentFiles.get(which);
-            openFile(fileInfo.getFilePath());
+        builder.setTitle("Find Text");
+        
+        final EditText input = new EditText(this);
+        input.setHint("Enter text to find...");
+        builder.setView(input);
+        
+        builder.setPositiveButton("Find", (dialog, which) -> {
+            String searchText = input.getText().toString().trim();
+            if (!searchText.isEmpty()) {
+                findTextInEditor(searchText);
+            }
         });
         
-        builder.setNegativeButton("Clear Recent", (dialog, which) -> {
-            recentFilesManager.clearRecentFiles();
-            Toast.makeText(this, "Recent files cleared", Toast.LENGTH_SHORT).show();
-        });
-        
+        builder.setNegativeButton("Cancel", null);
         builder.show();
     }
+    
+    private void findTextInEditor(String searchText) {
+        String editorText = codeEditor.getText().toString();
+        int index = editorText.toLowerCase().indexOf(searchText.toLowerCase());
+        
+        if (index != -1) {
+            // Select the found text
+            codeEditor.setSelection(index, index + searchText.length());
+            codeEditor.requestFocus();
+            Toast.makeText(this, "Found: " + searchText, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Text not found: " + searchText, Toast.LENGTH_SHORT).show();
+        }
+    }
+    
     
     private void openFile(String filePath) {
         try {
@@ -1037,8 +1008,6 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
                 currentFileName = fileName;
                 currentFilePath = uri.toString();
 
-                recentFilesManager.addRecentFile(uri.toString());
-
                 if (tabLayout != null) {
                     boolean tabExists = false;
                     for (int i = 0; i < tabLayout.getTabCount(); i++) {
@@ -1072,7 +1041,6 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
         }
         
         errorHighlightManager.setHighlightingEnabled(appSettings.isSyntaxHighlightingEnabled());
-        codeFoldingManager.setFoldingEnabled(true);
         
         codeEditor.setTextSize(appSettings.getFontSize());
         
