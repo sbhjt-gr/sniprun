@@ -274,8 +274,10 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
                 public void onTabReselected(TabLayout.Tab tab) {}
             });
             
-            TabLayout.Tab mainTab = tabLayout.newTab().setText("Main");
+            TabLayout.Tab mainTab = tabLayout.newTab();
             tabLayout.addTab(mainTab);
+            setupCustomTabView(mainTab, "Main");
+            updateTabCloseButtons();
         }
     }
     
@@ -567,9 +569,11 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     
     private void addNewTab(String fileName) {
         if (tabLayout != null) {
-            TabLayout.Tab newTab = tabLayout.newTab().setText(fileName);
+            TabLayout.Tab newTab = tabLayout.newTab();
             tabLayout.addTab(newTab);
+            setupCustomTabView(newTab, fileName);
             tabLayout.selectTab(newTab);
+            updateTabCloseButtons();
         }
         
         currentFileName = fileName;
@@ -580,8 +584,11 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
     private void switchToTab(int position) {
         if (tabLayout != null) {
             TabLayout.Tab tab = tabLayout.getTabAt(position);
-            if (tab != null && tab.getText() != null) {
-                currentFileName = tab.getText().toString();
+            if (tab != null && tab.getCustomView() != null) {
+                TextView tabText = tab.getCustomView().findViewById(R.id.tab_text);
+                if (tabText != null) {
+                    currentFileName = tabText.getText().toString();
+                }
             }
         }
     }
@@ -666,17 +673,22 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
                 boolean tabExists = false;
                 for (int i = 0; i < tabLayout.getTabCount(); i++) {
                     TabLayout.Tab tab = tabLayout.getTabAt(i);
-                    if (tab != null && tab.getText() != null && tab.getText().toString().equals(fileName)) {
-                        tabLayout.selectTab(tab);
-                        tabExists = true;
-                        break;
+                    if (tab != null && tab.getCustomView() != null) {
+                        TextView tabText = tab.getCustomView().findViewById(R.id.tab_text);
+                        if (tabText != null && tabText.getText().toString().equals(fileName)) {
+                            tabLayout.selectTab(tab);
+                            tabExists = true;
+                            break;
+                        }
                     }
                 }
                 
                 if (!tabExists) {
-                    TabLayout.Tab newTab = tabLayout.newTab().setText(fileName);
+                    TabLayout.Tab newTab = tabLayout.newTab();
                     tabLayout.addTab(newTab);
+                    setupCustomTabView(newTab, fileName);
                     tabLayout.selectTab(newTab);
+                    updateTabCloseButtons();
                 }
             }
             
@@ -835,6 +847,61 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
             Toast.makeText(this, "Found: " + searchText, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Text not found: " + searchText, Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void setupCustomTabView(TabLayout.Tab tab, String fileName) {
+        View customView = getLayoutInflater().inflate(R.layout.custom_tab_layout, null);
+        TextView tabText = customView.findViewById(R.id.tab_text);
+        View closeButton = customView.findViewById(R.id.tab_close_button);
+        
+        tabText.setText(fileName);
+        
+        closeButton.setOnClickListener(v -> {
+            int tabPosition = tab.getPosition();
+            closeTab(tabPosition);
+        });
+        
+        tab.setCustomView(customView);
+    }
+    
+    private void closeTab(int position) {
+        if (tabLayout != null && tabLayout.getTabCount() > 1) {
+            // Save current tab content if needed
+            TabLayout.Tab tabToClose = tabLayout.getTabAt(position);
+            
+            // Remove the tab
+            tabLayout.removeTabAt(position);
+            
+            // Select another tab if the closed tab was selected
+            if (position == tabLayout.getSelectedTabPosition() || tabLayout.getSelectedTabPosition() == -1) {
+                int newPosition = Math.max(0, position - 1);
+                if (newPosition < tabLayout.getTabCount()) {
+                    TabLayout.Tab newTab = tabLayout.getTabAt(newPosition);
+                    if (newTab != null) {
+                        tabLayout.selectTab(newTab);
+                        switchToTab(newPosition);
+                    }
+                }
+            }
+            
+            updateTabCloseButtons();
+        }
+    }
+    
+    private void updateTabCloseButtons() {
+        if (tabLayout == null) return;
+        
+        boolean showCloseButtons = tabLayout.getTabCount() > 1;
+        
+        for (int i = 0; i < tabLayout.getTabCount(); i++) {
+            TabLayout.Tab tab = tabLayout.getTabAt(i);
+            if (tab != null && tab.getCustomView() != null) {
+                View closeButton = tab.getCustomView().findViewById(R.id.tab_close_button);
+                if (closeButton != null) {
+                    closeButton.setVisibility(showCloseButtons ? View.VISIBLE : View.GONE);
+                }
+            }
         }
     }
     
@@ -1012,17 +1079,22 @@ public class MainActivity extends AppCompatActivity implements FileExplorerFragm
                     boolean tabExists = false;
                     for (int i = 0; i < tabLayout.getTabCount(); i++) {
                         TabLayout.Tab tab = tabLayout.getTabAt(i);
-                        if (tab != null && tab.getText() != null && tab.getText().toString().equals(fileName)) {
-                            tabLayout.selectTab(tab);
-                            tabExists = true;
-                            break;
+                        if (tab != null && tab.getCustomView() != null) {
+                            TextView tabText = tab.getCustomView().findViewById(R.id.tab_text);
+                            if (tabText != null && tabText.getText().toString().equals(fileName)) {
+                                tabLayout.selectTab(tab);
+                                tabExists = true;
+                                break;
+                            }
                         }
                     }
                     
                     if (!tabExists) {
-                        TabLayout.Tab newTab = tabLayout.newTab().setText(fileName);
+                        TabLayout.Tab newTab = tabLayout.newTab();
                         tabLayout.addTab(newTab);
+                        setupCustomTabView(newTab, fileName);
                         tabLayout.selectTab(newTab);
+                        updateTabCloseButtons();
                     }
                 }
                 
