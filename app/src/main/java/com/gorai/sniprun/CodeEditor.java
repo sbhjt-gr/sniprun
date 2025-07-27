@@ -212,4 +212,30 @@ public class CodeEditor extends AppCompatEditText {
         String formattedText = JavaCodeFormatter.format(text);
         setText(formattedText);
     }
+    
+    public interface OnSelectionChangedListener {
+        void onSelectionChanged(int selStart, int selEnd);
+    }
+    
+    private OnSelectionChangedListener selectionChangedListener;
+    
+    public void setOnSelectionChangedListener(OnSelectionChangedListener listener) {
+        this.selectionChangedListener = listener;
+    }
+    
+    @Override
+    protected void onSelectionChanged(int selStart, int selEnd) {
+        super.onSelectionChanged(selStart, selEnd);
+        if (selectionChangedListener != null) {
+            selectionChangedListener.onSelectionChanged(selStart, selEnd);
+        }
+    }
+    
+    public int getLineHeight() {
+        return Math.round(getPaint().getFontMetrics().descent - getPaint().getFontMetrics().ascent);
+    }
+    
+    public int getEditorScrollY() {
+        return super.getScrollY();
+    }
 }

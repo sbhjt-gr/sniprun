@@ -32,6 +32,37 @@
             android:icon="@drawable/ic_folder_open" />
     </group>
 
+    <group android:id="@+id/edit_menu_group">
+        <item
+            android:id="@+id/action_undo"
+            android:title="Undo"
+            android:icon="@drawable/ic_undo"
+            app:showAsAction="ifRoom" />
+
+        <item
+            android:id="@+id/action_redo"
+            android:title="Redo"
+            android:icon="@drawable/ic_redo"
+            app:showAsAction="ifRoom" />
+            
+        <item
+            android:id="@+id/action_recent_files"
+            android:title="Recent Files"
+            android:icon="@drawable/ic_history" />
+    </group>
+
+    <group android:id="@+id/view_menu_group">
+        <item
+            android:id="@+id/action_fold_all"
+            android:title="Fold All"
+            android:icon="@drawable/ic_fold" />
+
+        <item
+            android:id="@+id/action_unfold_all"
+            android:title="Unfold All"
+            android:icon="@drawable/ic_unfold" />
+    </group>
+
     <group android:id="@+id/tools_menu_group">
         <item
             android:id="@+id/action_templates"

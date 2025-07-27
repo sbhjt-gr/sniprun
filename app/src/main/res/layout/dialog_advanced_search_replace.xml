@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Search Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search for..."
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edit_text_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Replace Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Replace"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Replace with..."
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edit_text_replace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Search Options -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <CheckBox
+            android:id="@+id/checkbox_case_sensitive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Case sensitive" />
+
+        <CheckBox
+            android:id="@+id/checkbox_whole_word"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Whole word"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <CheckBox
+            android:id="@+id/checkbox_regex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Regex" />
+
+        <CheckBox
+            android:id="@+id/checkbox_wrap_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wrap search"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+    <!-- Advanced Options Toggle -->
+    <Button
+        android:id="@+id/button_toggle_advanced"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Advanced"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Advanced Options -->
+    <LinearLayout
+        android:id="@+id/layout_advanced_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <CheckBox
+            android:id="@+id/checkbox_search_in_selection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Search in selection only"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Scope (methods, comments, strings)"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_scope"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+
+    <!-- Search Results -->
+    <TextView
+        android:id="@+id/text_search_results"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/text_search_statistics"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/button_find_previous"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Previous"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/button_find_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Next"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/button_replace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Replace"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/button_replace_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Replace All"
+            style="@style/Widget.Material3.Button" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/button_find_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Find All"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    </LinearLayout>
+
+</LinearLayout>

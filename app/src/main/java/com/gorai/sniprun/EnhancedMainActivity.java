@@ -32,6 +32,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,6 +54,11 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
     private JavaExecutor javaExecutor;
     private FileManager fileManager;
     private AppSettings appSettings;
+    private UndoRedoManager undoRedoManager;
+    private RecentFilesManager recentFilesManager;
+    private ErrorHighlightManager errorHighlightManager;
+    private CodeFoldingManager codeFoldingManager;
+    private LineNumberView lineNumberView;
     
     private boolean isFileExplorerOpen = false;
     private String currentFileName = "Untitled.java";
@@ -92,6 +98,8 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
         fileManager = new FileManager(this);
         appSettings = new AppSettings(this);
         
+        initializeEditorFeatures();
+        
         loadSampleCode();
         startInitialAnimations();
         setupOnBackPressed();
@@ -104,11 +112,39 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
         runButton = findViewById(R.id.run_button);
         newFileButton = findViewById(R.id.new_file_button);
         copyOutputButton = findViewById(R.id.copy_output_button);
+        lineNumberView = findViewById(R.id.line_number_view);
         
         toolbarLogoAnimation = findViewById(R.id.toolbar_logo_animation);
         explorerIcon = findViewById(R.id.explorer_icon);
         editorStatusAnimation = findViewById(R.id.editor_status_animation);
         runButtonLoading = findViewById(R.id.run_button_loading);
+    }
+    
+    private void initializeEditorFeatures() {
+        undoRedoManager = new UndoRedoManager(codeEditor);
+        recentFilesManager = new RecentFilesManager(this);
+        errorHighlightManager = new ErrorHighlightManager(codeEditor);
+        codeFoldingManager = new CodeFoldingManager(codeEditor);
+        
+        if (lineNumberView != null) {
+            lineNumberView.attachToCodeEditor(codeEditor);
+        }
+        
+        codeEditor.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                String code = s.toString();
+                errorHighlightManager.highlightErrors(code);
+                codeFoldingManager.analyzeFoldRegions(code);
+                codeFoldingManager.applyFolding();
+            }
+        });
     }
     
     private void initializeLottieAnimations() {
@@ -351,6 +387,8 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             currentFileName = fileName;
             currentFilePath = filePath;
             
+            recentFilesManager.addRecentFile(filePath);
+            
             boolean tabExists = false;
             for (int i = 0; i < tabLayout.getTabCount(); i++) {
                 TabLayout.Tab tab = tabLayout.getTabAt(i);
@@ -397,11 +435,70 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             showAboutDialog();
             return true;
         } else if (id == R.id.action_find_replace) {
-            showFindReplaceDialog();
+            showAdvancedSearchReplaceDialog();
+            return true;
+        } else if (id == R.id.action_undo) {
+            undoRedoManager.undo();
+            return true;
+        } else if (id == R.id.action_redo) {
+            undoRedoManager.redo();
+            return true;
+        } else if (id == R.id.action_fold_all) {
+            codeFoldingManager.foldAll();
+            return true;
+        } else if (id == R.id.action_unfold_all) {
+            codeFoldingManager.unfoldAll();
+            return true;
+        } else if (id == R.id.action_recent_files) {
+            showRecentFilesDialog();
             return true;
         }
         
         return super.onOptionsItemSelected(item);
+    }
+    
+    private void showRecentFilesDialog() {
+        List<String> recentFiles = recentFilesManager.getRecentFiles();
+        if (recentFiles.isEmpty()) {
+            Toast.makeText(this, "No recent files", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] fileNames = recentFiles.toArray(new String[0]);
+        new AlertDialog.Builder(this)
+            .setTitle("Recent Files")
+            .setItems(fileNames, (dialog, which) -> {
+                String selectedFile = recentFiles.get(which);
+                openFile(selectedFile);
+            })
+            .show();
+    }
+
+    private void showAdvancedSearchReplaceDialog() {
+        SearchReplaceDialog dialog = new SearchReplaceDialog(this, codeEditor);
+        dialog.show();
+    }
+
+    private void openSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    private void showAboutDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("About SnipRun IDE")
+            .setMessage("Professional Java IDE for Android\n\n" +
+                       "Features:\n" +
+                       "• Java code editing and execution\n" +
+                       "• Syntax highlighting\n" +
+                       "• Error detection\n" +
+                       "• Code folding\n" +
+                       "• Line numbers\n" +
+                       "• Advanced search & replace\n" +
+                       "• Undo/Redo support\n\n" +
+                       "Version 1.0")
+            .setPositiveButton("OK", null)
+            .show();
     }
     
     private void saveCurrentFile() {
@@ -451,7 +548,8 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
     }
     
     private void openSettings() {
-        Toast.makeText(this, "Settings not implemented yet", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(intent, 1001);
     }
     
     private void showAboutDialog() {
@@ -471,6 +569,54 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
         dialog.show();
     }
     
+    private void showAdvancedSearchReplaceDialog() {
+        AdvancedSearchReplaceDialog dialog = new AdvancedSearchReplaceDialog(this, codeEditor);
+        dialog.show();
+    }
+    
+    private void showRecentFilesDialog() {
+        List<RecentFilesManager.RecentFileInfo> recentFiles = recentFilesManager.getRecentFileInfos();
+        
+        if (recentFiles.isEmpty()) {
+            Toast.makeText(this, "No recent files", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        String[] fileNames = new String[recentFiles.size()];
+        for (int i = 0; i < recentFiles.size(); i++) {
+            fileNames[i] = recentFiles.get(i).getDisplayName();
+        }
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Recent Files");
+        builder.setItems(fileNames, (dialog, which) -> {
+            RecentFilesManager.RecentFileInfo fileInfo = recentFiles.get(which);
+            openRecentFile(fileInfo.getFilePath());
+        });
+        
+        builder.setNegativeButton("Clear Recent", (dialog, which) -> {
+            recentFilesManager.clearRecentFiles();
+            Toast.makeText(this, "Recent files cleared", Toast.LENGTH_SHORT).show();
+        });
+        
+        builder.show();
+    }
+    
+    private void openRecentFile(String filePath) {
+        try {
+            String content = fileManager.readFile(filePath);
+            codeEditor.setText(content);
+            
+            String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+            currentFileName = fileName;
+            currentFilePath = filePath;
+            
+            Toast.makeText(this, "Opened: " + fileName, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, "Error opening file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
     private void setupOnBackPressed() {
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
@@ -483,6 +629,42 @@ public class EnhancedMainActivity extends AppCompatActivity implements FileExplo
             }
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
+            if (data.getBooleanExtra("theme_changed", false)) {
+                recreate();
+            }
+            if (data.getBooleanExtra("settings_reset", false)) {
+                Toast.makeText(this, "Settings reset to defaults", Toast.LENGTH_SHORT).show();
+            }
+            if (data.getBooleanExtra("settings_changed", false)) {
+                applySettings();
+            }
+        }
+    }
+    
+    private void applySettings() {
+        if (appSettings.isLineNumbersEnabled() && lineNumberView != null) {
+            lineNumberView.setVisibility(View.VISIBLE);
+        } else if (lineNumberView != null) {
+            lineNumberView.setVisibility(View.GONE);
+        }
+        
+        errorHighlightManager.setHighlightingEnabled(appSettings.isSyntaxHighlightingEnabled());
+        codeFoldingManager.setFoldingEnabled(true);
+        
+        codeEditor.setTextSize(appSettings.getFontSize());
+        
+        if (appSettings.isWordWrapEnabled()) {
+            codeEditor.setHorizontallyScrolling(false);
+        } else {
+            codeEditor.setHorizontallyScrolling(true);
+        }
     }
     
     @Override

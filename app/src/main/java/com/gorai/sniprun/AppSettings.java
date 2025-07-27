@@ -16,7 +16,7 @@ public class AppSettings {
     private static final String KEY_SHOW_WHITESPACE = "show_whitespace";
     
     public enum Theme {
-        DARK
+        DARK, LIGHT
     }
     
     private final SharedPreferences prefs;
@@ -28,7 +28,12 @@ public class AppSettings {
     }
     
     public Theme getTheme() {
-        return Theme.DARK;
+        String themeName = prefs.getString(KEY_THEME, Theme.DARK.name());
+        try {
+            return Theme.valueOf(themeName);
+        } catch (IllegalArgumentException e) {
+            return Theme.DARK;
+        }
     }
     
     public void setTheme(Theme theme) {
